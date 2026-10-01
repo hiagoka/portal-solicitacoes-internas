@@ -237,6 +237,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 
 ## Memorial: anotar durante o caminho
 A cada decisão relevante, registrar o motivo em `docs/decisoes.md`. No final vira o memorial.
+**Regra:** ao fechar cada fase, a última tarefa é registrar as decisões dela em `docs/decisoes.md` antes de seguir para a próxima.
 
 ## Riscos
 - **Memorial deixado para o fim:** anotar decisões ao longo do caminho.
