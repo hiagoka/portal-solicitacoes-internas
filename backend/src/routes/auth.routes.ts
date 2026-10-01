@@ -8,3 +8,4 @@ export const authRoutes = Router();
 
 authRoutes.post('/auth/login', validar(loginSchema), authController.login);
 authRoutes.get('/auth/me', autenticar, authController.me);
+authRoutes.post('/auth/logout', authController.logout);
