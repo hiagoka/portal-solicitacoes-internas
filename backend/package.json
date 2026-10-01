@@ -24,5 +24,12 @@
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.1",
     "zod": "^4.6.5"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'testes serao configurados na fase 6' && exit 0"
   }
 }
