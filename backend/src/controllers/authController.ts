@@ -21,6 +21,10 @@ export const authController = {
     res.json({ usuario: resultado.usuario });
   },
 
+  me(req: Request, res: Response) {
+    res.json({ usuario: req.usuario });
+  },
+
   logout(_req: Request, res: Response) {
     res.clearCookie(NOME_COOKIE, opcoesCookie);
     res.status(204).end();
