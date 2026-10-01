@@ -39,12 +39,29 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** erros esperados usam `AppError` (status + mensagem); um middleware único converte tudo para `{ "erro": "...", "detalhes": ... }`. Erros inesperados viram 500 genérico, sem vazar detalhes internos.
 - **Motivo:** formato consistente para o frontend e segurança básica (não expor stack trace nem mensagens do banco).
 
-## 009 — Sessão via JWT em cookie httpOnly (a implementar na Fase 3)
+## 009 — Sessão via JWT em cookie httpOnly
 - **Decisão:** após o login, a API emite um JWT guardado em cookie `httpOnly`.
 - **Motivo:** JavaScript da página não consegue ler o cookie, o que reduz o risco de roubo do token por XSS. JWT dispensa armazenar sessões no servidor, simplificando Docker e deploy.
 - **Alternativas:** token em `localStorage` (exposto a XSS); sessões no servidor com Redis (mais infraestrutura).
-- **Pendente:** definir `SameSite` e `Secure` conforme o ambiente.
+- **Implementado:** cookie `httpOnly`, `SameSite=Lax` (o navegador não o envia em requisições de outros sites, mitigando CSRF) e `Secure` controlado por `COOKIE_SECURE` (ligar apenas quando houver HTTPS). O JWT carrega só o id (`sub`) e o perfil; o logout limpa o cookie.
 
 ## 010 — Variáveis de ambiente validadas na inicialização
 - **Decisão:** `config/env.ts` valida o `.env` com zod e interrompe a aplicação se algo faltar ou for inválido (ex.: `JWT_SECRET` curto).
 - **Motivo:** falhar cedo e com mensagem clara, em vez de erro obscuro durante uma requisição. Segredos ficam fora do git (`.env` ignorado, `.env.example` versionado).
+
+## 011 — Mensagem única para "usuário inexistente" e "senha errada"
+- **Decisão:** o login devolve sempre `Usuário ou senha inválidos` (401). Quando o usuário não existe, a senha é comparada contra um hash falso.
+- **Motivo:** evita enumeração de usuários: nem a mensagem nem o tempo de resposta revelam quais logins existem.
+
+## 012 — Usuário é reconsultado no banco a cada requisição autenticada
+- **Decisão:** o middleware `autenticar` valida o JWT e também busca o usuário no banco.
+- **Motivo:** um usuário removido perde acesso imediatamente, mesmo com token ainda válido. O custo é uma consulta por id (chave primária), irrelevante nesta escala. Em produção, com muito tráfego, seria possível cachear.
+
+## 013 — Rate limit no login com `express-rate-limit`
+- **Decisão:** máximo de 10 tentativas por IP a cada 15 minutos em `POST /auth/login`; excedido, responde 429 no formato padrão de erro.
+- **Motivo:** dificulta ataque de força bruta, com custo mínimo de implementação. Desativado em `NODE_ENV=test` para não interferir nos testes.
+- **Limitação:** contador em memória, não compartilhado entre instâncias. Em produção com várias réplicas, usar um armazenamento compartilhado (ex.: Redis).
+
+## 014 — Autorização por perfil em middleware reutilizável
+- **Decisão:** `exigirPerfil('atendente')` protege rotas por perfil; as regras que dependem do dado (ex.: "só o autor edita") ficam no service.
+- **Motivo:** separa "quem pode usar esta rota" (middleware, declarativo) de "quem pode agir sobre este registro" (regra de negócio).

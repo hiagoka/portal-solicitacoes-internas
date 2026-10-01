@@ -68,15 +68,15 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 # DIA 2 — Sex 02/10: Backend completo
 
 ## Fase 3 — Autenticação
-- [ ] **3.1** Criar `usuarioRepository` (buscar por usuário e por id)
-- [ ] **3.2** Criar `authService.login` (compara senha com bcrypt, gera JWT)
-- [ ] **3.3** Criar schema de validação do login (zod)
-- [ ] **3.4** Criar `POST /auth/login` (grava cookie httpOnly)
-- [ ] **3.5** Criar o middleware `autenticar` (lê o cookie, valida o JWT, anexa o usuário à requisição)
-- [ ] **3.6** Criar `GET /auth/me`
-- [ ] **3.7** Criar `POST /auth/logout` (limpa o cookie)
-- [ ] **3.8** Criar o middleware `exigirPerfil('atendente')`
-- [ ] **3.9** Adicionar rate limit no login (segurança básica)
+- [x] **3.1** Criar `usuarioRepository` (buscar por usuário e por id)
+- [x] **3.2** Criar `authService.login` (compara senha com bcrypt, gera JWT)
+- [x] **3.3** Criar schema de validação do login (zod)
+- [x] **3.4** Criar `POST /auth/login` (grava cookie httpOnly)
+- [x] **3.5** Criar o middleware `autenticar` (lê o cookie, valida o JWT, anexa o usuário à requisição)
+- [x] **3.6** Criar `GET /auth/me`
+- [x] **3.7** Criar `POST /auth/logout` (limpa o cookie)
+- [x] **3.8** Criar o middleware `exigirPerfil('atendente')`
+- [x] **3.9** Adicionar rate limit no login (segurança básica)
 
 ## Fase 4 — CRUD de solicitações
 - [ ] **4.1** Criar tipos e schemas zod (criar, editar)
