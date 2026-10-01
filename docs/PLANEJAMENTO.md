@@ -41,15 +41,15 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 # DIA 1 — Qui 01/10: Banco e esqueleto do backend
 
 ## Fase 1 — Banco de dados
-- [ ] **1.1** Criar `database/schema.sql` com a tabela `usuarios`
-- [ ] **1.2** Adicionar a tabela `solicitacoes` com a FK para `usuarios`
-- [ ] **1.3** Adicionar CHECKs para categoria, status e perfil (valores válidos)
-- [ ] **1.4** Adicionar índices (status, categoria, criado_em, usuario_id)
-- [ ] **1.5** Criar `database/seed.sql` com 3 usuários (1 atendente, 2 solicitantes) e senhas com hash
-- [ ] **1.6** Adicionar ~10 solicitações de exemplo ao seed, variando categoria, status e datas
-- [ ] **1.7** Subir um Postgres local (container) e rodar schema + seed para validar
-- [ ] **1.8** Escrever `database/dicionario-de-dados.md` (tabela usuarios)
-- [ ] **1.9** Completar o dicionário (tabela solicitacoes, relacionamentos, regras)
+- [x] **1.1** Criar `database/schema.sql` com a tabela `usuarios`
+- [x] **1.2** Adicionar a tabela `solicitacoes` com a FK para `usuarios`
+- [x] **1.3** Adicionar CHECKs para categoria, status e perfil (valores válidos)
+- [x] **1.4** Adicionar índices (status, categoria, criado_em, usuario_id)
+- [x] **1.5** Criar `database/seed.sql` com 3 usuários (1 atendente, 2 solicitantes) e senhas com hash
+- [x] **1.6** Adicionar ~10 solicitações de exemplo ao seed, variando categoria, status e datas
+- [x] **1.7** Subir um Postgres local (container) e rodar schema + seed para validar
+- [x] **1.8** Escrever `database/dicionario-de-dados.md` (tabela usuarios)
+- [x] **1.9** Completar o dicionário (tabela solicitacoes, relacionamentos, regras)
 
 ## Fase 2 — Esqueleto do backend
 - [ ] **2.1** Inicializar `backend/` (package.json, TypeScript, tsconfig)
