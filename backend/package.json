@@ -1,0 +1,13 @@
+{
+  "name": "portal-solicitacoes-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API do Portal de Solicitações Internas",
+  "main": "dist/server.js",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
