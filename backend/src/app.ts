@@ -4,6 +4,7 @@ import cors from 'cors';
 import { env } from './config/env';
 import { errorHandler, naoEncontrado } from './middlewares/errorHandler';
 import { healthRoutes } from './routes/health.routes';
+import { authRoutes } from './routes/auth.routes';
 
 // Separado do server.ts para que os testes possam importar o app sem abrir uma porta.
 export const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(healthRoutes);
+app.use(authRoutes);
 // As demais rotas da aplicação serão registradas aqui.
 
 app.use(naoEncontrado);
