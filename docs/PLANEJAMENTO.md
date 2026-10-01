@@ -52,16 +52,16 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **1.9** Completar o dicionário (tabela solicitacoes, relacionamentos, regras)
 
 ## Fase 2 — Esqueleto do backend
-- [ ] **2.1** Inicializar `backend/` (package.json, TypeScript, tsconfig)
-- [ ] **2.2** Instalar dependências (express, pg, zod, bcrypt, jsonwebtoken, cookie-parser, cors, dotenv)
-- [ ] **2.3** Criar a estrutura de pastas (routes, controllers, services, repositories, middlewares, config)
-- [ ] **2.4** Criar `config/env.ts` (leitura e validação das variáveis) e `.env.example`
-- [ ] **2.5** Criar `config/database.ts` (pool de conexões com o Postgres)
-- [ ] **2.6** Criar `app.ts` (Express, JSON, cookies, CORS) e `server.ts` (sobe o servidor)
-- [ ] **2.7** Criar a rota `GET /health` e testar com o banco conectado
-- [ ] **2.8** Criar a classe `AppError` e o middleware global de tratamento de erros
-- [ ] **2.9** Criar o middleware genérico de validação com zod
-- [ ] **2.10** Configurar scripts npm (dev, build, start, test)
+- [x] **2.1** Inicializar `backend/` (package.json, TypeScript, tsconfig)
+- [x] **2.2** Instalar dependências (express, pg, zod, bcrypt, jsonwebtoken, cookie-parser, cors, dotenv)
+- [x] **2.3** Criar a estrutura de pastas (routes, controllers, services, repositories, middlewares, config)
+- [x] **2.4** Criar `config/env.ts` (leitura e validação das variáveis) e `.env.example`
+- [x] **2.5** Criar `config/database.ts` (pool de conexões com o Postgres)
+- [x] **2.6** Criar `app.ts` (Express, JSON, cookies, CORS) e `server.ts` (sobe o servidor)
+- [x] **2.7** Criar a rota `GET /health` e testar com o banco conectado
+- [x] **2.8** Criar a classe `AppError` e o middleware global de tratamento de erros
+- [x] **2.9** Criar o middleware genérico de validação com zod
+- [x] **2.10** Configurar scripts npm (dev, build, start, test)
 
 ---
 
