@@ -1,0 +1,103 @@
+// Criar, editar, excluir e alterar status, com as permissões de cada perfil e o caminho de erro (conflito).
+import { iniciar, pausa } from '../lib/harness.mjs'
+
+const t = await iniciar('crud', { largura: 1100, altura: 900 })
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo } = t
+const modalAberto = () => pagina.evaluate(() => !!document.querySelector('dialog[open]'))
+const clicarNoModal = (rotulo) =>
+  pagina.evaluate((r) => [...document.querySelectorAll('dialog button')].find((b) => b.textContent.trim() === r).click(), rotulo)
+
+// ============ MARIA ============
+await entrar('maria')
+await ir('/solicitacoes')
+await clicar('Nova solicitação')
+await esperar(() => location.pathname === '/solicitacoes/nova')
+checar('1 "Nova solicitação" abre o formulário', caminho() === '/solicitacoes/nova' && (await temTexto('Criar solicitação')))
+await clicar('Criar solicitação'); await pausa(300)
+let tela = await texto()
+checar('1 envio vazio mostra os 3 erros de campo', tela.includes('ao menos 3 caracteres') && tela.includes('Informe a descrição') && tela.includes('Selecione a categoria'))
+await t.foto('form-erros')
+await (await campo('Título')).type('ab')
+await (await campo('Descrição')).type('Descrição de teste\nsegunda linha')
+await (await campo('Categoria')).select('Financeiro')
+await clicar('Criar solicitação'); await pausa(300)
+checar('1 título curto continua com erro', await temTexto('ao menos 3 caracteres'))
+await (await campo('Título')).type('c Reembolso E2E')
+await clicar('Criar solicitação')
+await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname))
+const idNovo = caminho().split('/').pop()
+await esperar(() => document.body.innerText.includes('abc Reembolso E2E'))
+tela = await texto()
+checar('2 criar leva aos detalhes da nova solicitação', Number(idNovo) > 10, caminho())
+checar('2 toast de sucesso com o código', tela.includes(`Solicitação #00${idNovo} criada.`), tela.slice(0, 200))
+checar('2 detalhes: título, categoria, solicitante, status', tela.includes('abc Reembolso E2E') && tela.includes('Financeiro') && tela.includes('Maria Souza') && tela.includes('Aberto'))
+checar('2 descrição preserva quebra de linha', await pagina.evaluate(() => [...document.querySelectorAll('p')].some((p) => p.textContent.includes('segunda linha') && getComputedStyle(p).whiteSpace === 'pre-wrap')))
+checar('3 autor de solicitação aberta vê Editar e Excluir', (await temBotao('Editar')) && (await temBotao('Excluir')))
+await t.foto('detalhes')
+
+// editar
+await clicar('Editar')
+await esperar(() => location.pathname.endsWith('/editar') && document.querySelector('input'))
+checar('4 editar abre o formulário preenchido', (await (await campo('Título')).evaluate((e) => e.value)) === 'abc Reembolso E2E' && (await (await campo('Categoria')).evaluate((e) => e.value)) === 'Financeiro')
+await (await campo('Título')).click({ clickCount: 3 })
+await (await campo('Título')).type('Reembolso E2E (editado)')
+await clicar('Salvar alterações')
+await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname) && document.body.innerText.includes('(editado)'))
+await pausa(300)
+tela = await texto()
+checar('4 salvar volta aos detalhes com o novo título e toast', caminho() === `/solicitacoes/${idNovo}` && tela.includes('Reembolso E2E (editado)') && tela.includes('Solicitação atualizada.'))
+
+// excluir: cancelar e confirmar
+await clicar('Excluir'); await pausa(300)
+checar('5 excluir abre modal de confirmação', await modalAberto())
+await t.foto('modal-excluir')
+await clicarNoModal('Cancelar'); await pausa(300)
+checar('5 cancelar fecha o modal e mantém a solicitação', !(await modalAberto()) && caminho() === `/solicitacoes/${idNovo}`)
+await clicar('Excluir'); await pausa(300)
+await clicarNoModal('Excluir')
+await esperar(() => location.pathname === '/solicitacoes')
+await pausa(500)
+tela = await texto()
+checar('5 confirmar exclui, volta à lista e avisa', caminho() === '/solicitacoes' && tela.includes('excluída.') && !tela.includes('Reembolso E2E'))
+await ir(`/solicitacoes/${idNovo}`)
+checar('5 a solicitação excluída vira "não encontrada"', await temTexto('Solicitação não encontrada'))
+
+// restrições da Maria
+await ir('/solicitacoes/2')
+checar('6 em atendimento: sem Editar/Excluir e sem caixa de atendimento', !(await temBotao('Editar')) && !(await temBotao('Excluir')) && !(await temTitulo('Atendimento')) && (await temTexto('Em Atendimento')))
+await ir('/solicitacoes/2/editar')
+checar('6 URL de edição direta é bloqueada na tela', await temTexto('não pode ser editada'))
+await ir('/solicitacoes/4')
+checar('7 solicitação de outro usuário: não encontrada', await temTexto('Solicitação não encontrada'))
+await ir('/solicitacoes/abc')
+checar('7 código inválido: não encontrada', await temTexto('Solicitação não encontrada'))
+
+// ============ ERRO: exclusão com conflito ============
+await ir('/solicitacoes/1')
+checar('8 (preparo) Maria vê Excluir na #1 aberta', await temBotao('Excluir'))
+const r = await apiComo('atendente', 'PATCH', '/solicitacoes/1/status', { status: 'em_atendimento' }) // atendente assume em paralelo
+checar('8 (preparo) atendente assume a #1 pela API', r.status === 200, String(r.status))
+await clicar('Excluir'); await pausa(300)
+await clicarNoModal('Excluir'); await pausa(1200)
+tela = await texto()
+checar('8 conflito: o modal fecha antes do toast de erro', !(await modalAberto()))
+checar('8 conflito: toast com a mensagem da API', tela.includes('Apenas solicitações abertas podem ser alteradas ou excluídas'), tela.slice(0, 300))
+checar('8 conflito: a tela recarrega e remove Editar/Excluir', !(await temBotao('Excluir')) && !(await temBotao('Editar')) && (await temTexto('Em Atendimento')))
+await t.foto('conflito')
+await sair()
+
+// ============ ATENDENTE ============
+await entrar('atendente')
+await ir('/solicitacoes/4')
+checar('9 atendente não vê Editar/Excluir (não é o autor)', !(await temBotao('Editar')) && !(await temBotao('Excluir')) && !(await pagina.evaluate(() => !!document.querySelector('dialog'))))
+checar('9 atendente vê "Atendimento" e só as transições válidas de "aberto"', (await temTexto('Alterar status para')) && JSON.stringify(await opcoesDoSelect()) === JSON.stringify(['Selecione...', 'Em Atendimento', 'Concluído']), JSON.stringify(await opcoesDoSelect()))
+await (await campo('Alterar status para')).select('em_atendimento')
+await clicar('Atualizar status'); await pausa(1000)
+tela = await texto()
+checar('9 mudar status atualiza a tela e avisa', tela.includes('Status alterado para "Em Atendimento".') && (await pagina.evaluate(() => [...document.querySelectorAll('dd span')].some((s) => s.textContent === 'Em Atendimento'))))
+checar('9 depois, as opções refletem o novo status', JSON.stringify(await opcoesDoSelect()) === JSON.stringify(['Selecione...', 'Aberto', 'Concluído']), JSON.stringify(await opcoesDoSelect()))
+await t.foto('detalhes-atendente')
+await ir('/solicitacoes/4/editar')
+checar('10 atendente não edita (URL direta)', await temTexto('não pode ser editada'))
+
+await t.finalizar({ ignorarErros: /Failed to load resource|404|409|net::/ })
