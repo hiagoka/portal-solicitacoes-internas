@@ -1,9 +1,14 @@
 import { Route, Routes } from 'react-router'
 import { AppLayout, ProtectedRoute } from '@/components/layout'
-import { ROTAS } from '@/constants'
+import { PADROES_ROTA, ROTAS } from '@/constants'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
-import { ListaSolicitacoesPage } from '@/features/solicitacoes'
+import {
+  DetalhesSolicitacaoPage,
+  EditarSolicitacaoPage,
+  ListaSolicitacoesPage,
+  NovaSolicitacaoPage,
+} from '@/features/solicitacoes'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 // Mapa de rotas. Tudo dentro de <ProtectedRoute> exige login e aparece dentro do <AppLayout>.
@@ -16,6 +21,9 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path={ROTAS.dashboard} element={<DashboardPage />} />
           <Route path={ROTAS.solicitacoes} element={<ListaSolicitacoesPage />} />
+          <Route path={ROTAS.novaSolicitacao} element={<NovaSolicitacaoPage />} />
+          <Route path={PADROES_ROTA.detalhesSolicitacao} element={<DetalhesSolicitacaoPage />} />
+          <Route path={PADROES_ROTA.editarSolicitacao} element={<EditarSolicitacaoPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>
