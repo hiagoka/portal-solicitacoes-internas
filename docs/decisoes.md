@@ -241,3 +241,24 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** `skipSuccessfulRequests: true` no limitador de `POST /auth/login`.
 - **Motivo:** o limite (10 por IP a cada 15 min) contava também os logins corretos. Num escritório, onde muitos colaboradores saem do mesmo IP, 10 pessoas entrando normalmente bloqueariam todas as outras. O alvo da proteção é a adivinhação de senha, que se manifesta em falhas.
 - **Verificado manualmente:** 12 logins corretos seguidos passam; na 11ª senha errada a API responde 429. O comportamento ainda não tem teste automatizado, pois o limitador é desligado em `NODE_ENV=test`.
+
+## 052 — Docker Compose com três serviços e inicialização do banco pelos próprios scripts SQL
+- **Decisão:** `docker-compose.yml` sobe `db` (PostgreSQL 16), `backend` (Node 22) e `frontend` (nginx). O banco monta `database/schema.sql` e `database/seed.sql` em `/docker-entrypoint-initdb.d/`, que o Postgres executa em ordem na **primeira** criação do volume. `depends_on` com `condition: service_healthy` garante a ordem db → backend → frontend, e os três têm healthcheck.
+- **Motivo:** os mesmos scripts que o enunciado pede (criação das tabelas e dados de teste) são os que realmente inicializam o ambiente, sem um passo manual. Os dados persistem em um volume nomeado: `docker compose down` mantém; `down -v` volta ao estado inicial. Verificado em ambos os casos.
+- **Executar sem adaptações:** todos os valores têm padrão de demonstração (senha do banco, `JWT_SECRET`), então `docker compose up --build` funciona num clone limpo, sem `.env`. Medido: ~40 s do clone ao sistema saudável. O `.env.example` documenta como trocar.
+- **Atenção:** os segredos padrão servem apenas para demonstração; em qualquer ambiente real devem ser substituídos (`openssl rand -hex 32`). O banco não é publicado no host por padrão (evita conflito de porta e exposição desnecessária).
+
+## 053 — nginx como proxy reverso: uma única origem para o navegador
+- **Decisão:** o frontend é servido pelo nginx, que também repassa `/api/*` ao backend (removendo o prefixo). O front é compilado com `VITE_API_URL=/api`.
+- **Motivo:** com uma só origem não há CORS, o cookie de sessão `SameSite=Lax` funciona sem ajustes e o sistema responde igual por `localhost`, IP da rede ou domínio. Em desenvolvimento (Vite em :5173 + API em :3000) continua valendo o CORS configurado.
+- **Detalhes:** fallback de SPA (`try_files … /index.html`) para URLs profundas como `/solicitacoes/4`; assets com hash recebem cache de 1 ano e `immutable`; o `index.html` fica com `no-cache` para novas versões chegarem; cabeçalhos `X-Content-Type-Options`, `X-Frame-Options` e `Referrer-Policy` (incluídos em cada `location`, pois o nginx não herda `add_header`).
+- **Não feito (produção):** Content-Security-Policy e HTTPS. A CSP exigiria tratar o script inline do tema (nonce ou hash); o HTTPS seria terminado por um balanceador/proxy externo, ligando `COOKIE_SECURE=true`.
+
+## 054 — `TRUST_PROXY` para o rate limit enxergar o cliente real
+- **Decisão:** variável `TRUST_PROXY` (padrão `false`; `true` no compose) liga `app.set('trust proxy', 1)`.
+- **Motivo:** atrás do nginx todas as requisições chegam do IP do proxy; sem isso o limite de tentativas de login seria compartilhado por todos os usuários. Com 1 salto confiável, o Express usa o IP que o **nginx** viu, e não o que o cliente declara.
+- **Verificado:** enviando 11 senhas erradas com um `X-Forwarded-For` diferente a cada tentativa, a 11ª recebeu 429, ou seja, forjar o cabeçalho não contorna o limite.
+
+## 055 — Imagens multi-stage enxutas e sem privilégios de root
+- **Decisão:** backend e frontend usam build em dois estágios. O backend final contém só dependências de produção e o JS compilado, e roda como o usuário `node`. O frontend final é apenas nginx + arquivos estáticos (sem Node). `.dockerignore` evita copiar `node_modules`, `.env` e testes.
+- **Motivo:** menor superfície de ataque e imagens menores. `bcryptjs` (decisão 004) evitou a necessidade de compilar módulos nativos nas imagens Alpine.

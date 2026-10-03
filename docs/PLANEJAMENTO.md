@@ -167,14 +167,14 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 # DIA 4 — Dom 04/10: Infra e acabamento
 
 ## Fase 12 — Docker
-- [ ] **12.1** Criar o `Dockerfile` do backend (multi-stage)
-- [ ] **12.2** Criar o `Dockerfile` do frontend (build + Nginx)
-- [ ] **12.3** Criar o `docker-compose.yml` com o serviço do Postgres
-- [ ] **12.4** Montar `schema.sql` e `seed.sql` em `docker-entrypoint-initdb.d`
-- [ ] **12.5** Adicionar o backend ao compose (healthcheck e depends_on)
-- [ ] **12.6** Adicionar o frontend ao compose
-- [ ] **12.7** Criar o `.env.example` da raiz
-- [ ] **12.8** Testar `docker compose up` a partir de um clone limpo
+- [x] **12.1** Criar o `Dockerfile` do backend (multi-stage)
+- [x] **12.2** Criar o `Dockerfile` do frontend (build + Nginx)
+- [x] **12.3** Criar o `docker-compose.yml` com o serviço do Postgres
+- [x] **12.4** Montar `schema.sql` e `seed.sql` em `docker-entrypoint-initdb.d`
+- [x] **12.5** Adicionar o backend ao compose (healthcheck e depends_on)
+- [x] **12.6** Adicionar o frontend ao compose
+- [x] **12.7** Criar o `.env.example` da raiz
+- [x] **12.8** Testar `docker compose up` a partir de um clone limpo
 
 ## Fase 13 — CI
 - [ ] **13.1** Criar o workflow `.github/workflows/ci.yml` (checkout, setup-node)
