@@ -194,33 +194,33 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 # DIA 5 — Seg 05/10: Documentação e entrega
 
 ## Fase 15 — README
-- [ ] **15.1** Descrição do projeto e funcionalidades
-- [ ] **15.2** Pré-requisitos (linguagem, banco, dependências)
-- [ ] **15.3** Instalação: banco de dados
-- [ ] **15.4** Instalação: backend
-- [ ] **15.5** Instalação: frontend
-- [ ] **15.6** Configuração: variáveis de ambiente
-- [ ] **15.7** Execução com e sem Docker
-- [ ] **15.8** Credenciais dos usuários de teste
-- [ ] **15.9** Como rodar os testes
+- [x] **15.1** Descrição do projeto e funcionalidades
+- [x] **15.2** Pré-requisitos (linguagem, banco, dependências)
+- [x] **15.3** Instalação: banco de dados
+- [x] **15.4** Instalação: backend
+- [x] **15.5** Instalação: frontend
+- [x] **15.6** Configuração: variáveis de ambiente
+- [x] **15.7** Execução com e sem Docker
+- [x] **15.8** Credenciais dos usuários de teste
+- [x] **15.9** Como rodar os testes
 
 ## Fase 16 — Memorial Técnico
-- [ ] **16.1** Seção: tecnologias utilizadas (lista completa)
-- [ ] **16.2** Seção: justificativa técnica por tecnologia (motivo, benefícios, alternativas, impacto)
-- [ ] **16.3** Seção: estrutura geral e camadas
-- [ ] **16.4** Seção: modelagem de dados
-- [ ] **16.5** Seção: estratégia de autenticação
-- [ ] **16.6** Seção: comunicação frontend ↔ backend
-- [ ] **16.7** Seção: organização do código-fonte
-- [ ] **16.8** Seção: análise crítica (limitações, melhorias, o que mudaria em produção)
+- [x] **16.1** Seção: tecnologias utilizadas (lista completa)
+- [x] **16.2** Seção: justificativa técnica por tecnologia (motivo, benefícios, alternativas, impacto)
+- [x] **16.3** Seção: estrutura geral e camadas
+- [x] **16.4** Seção: modelagem de dados
+- [x] **16.5** Seção: estratégia de autenticação
+- [x] **16.6** Seção: comunicação frontend ↔ backend
+- [x] **16.7** Seção: organização do código-fonte
+- [x] **16.8** Seção: análise crítica (limitações, melhorias, o que mudaria em produção)
 
 ## Fase 17 — Evidências e entrega
-- [ ] **17.1** Print: login
-- [ ] **17.2** Print: listagem com filtros
-- [ ] **17.3** Print: criar/editar solicitação
-- [ ] **17.4** Print: detalhes e alteração de status
-- [ ] **17.5** Print: dashboard
-- [ ] **17.6** Print: versão mobile
+- [x] **17.1** Print: login
+- [x] **17.2** Print: listagem com filtros
+- [x] **17.3** Print: criar/editar solicitação
+- [x] **17.4** Print: detalhes e alteração de status
+- [x] **17.5** Print: dashboard
+- [x] **17.6** Print: versão mobile
 - [ ] **17.7** Revisão final do checklist de entrega
 - [ ] **17.8** Push final e verificação do repositório no GitHub
 - [ ] **17.9** Envio ao avaliador
@@ -228,12 +228,12 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 ---
 
 ## Checklist de entrega (exigido pelo PDF)
-- [ ] Código-fonte de backend e frontend
-- [ ] Instruções de execução
-- [ ] Scripts SQL e dicionário de dados
-- [ ] Memorial Técnico
-- [ ] README
-- [ ] Evidências (prints ou vídeo)
+- [x] Código-fonte de backend e frontend
+- [x] Instruções de execução
+- [x] Scripts SQL e dicionário de dados
+- [x] Memorial Técnico
+- [x] README
+- [x] Evidências (prints ou vídeo)
 
 ## Memorial: anotar durante o caminho
 A cada decisão relevante, registrar o motivo em `docs/decisoes.md`. No final vira o memorial.
