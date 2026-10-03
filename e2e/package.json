@@ -1,0 +1,13 @@
+{
+  "name": "portal-solicitacoes-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes de ponta a ponta (navegador real) do Portal de Solicitações",
+  "type": "module",
+  "scripts": {
+    "test": "bash run.sh"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}
