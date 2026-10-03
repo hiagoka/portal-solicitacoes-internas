@@ -108,14 +108,14 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **5.11** Criar `GET /dashboard` (escopo por perfil)
 
 ## Fase 6 — Testes do backend
-- [ ] **6.1** Configurar Vitest + Supertest e um banco de testes
-- [ ] **6.2** Testes de login (sucesso, senha errada, usuário inexistente)
-- [ ] **6.3** Testes de acesso sem autenticação (401)
-- [ ] **6.4** Testes de criação (sucesso e validação)
-- [ ] **6.5** Testes de edição e exclusão (aberta, não aberta e de outro usuário)
-- [ ] **6.6** Testes de filtros
-- [ ] **6.7** Testes de alteração de status e permissão
-- [ ] **6.8** Teste do dashboard
+- [x] **6.1** Configurar Vitest + Supertest e um banco de testes
+- [x] **6.2** Testes de login (sucesso, senha errada, usuário inexistente)
+- [x] **6.3** Testes de acesso sem autenticação (401)
+- [x] **6.4** Testes de criação (sucesso e validação)
+- [x] **6.5** Testes de edição e exclusão (aberta, não aberta e de outro usuário)
+- [x] **6.6** Testes de filtros
+- [x] **6.7** Testes de alteração de status e permissão
+- [x] **6.8** Teste do dashboard
 
 ---
 

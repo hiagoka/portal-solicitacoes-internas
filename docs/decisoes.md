@@ -114,3 +114,18 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** a listagem devolve todas as solicitações do escopo, sem paginação.
 - **Motivo:** priorizar os requisitos obrigatórios dentro do prazo; o volume esperado é pequeno.
 - **Limitação / melhoria futura:** com milhares de registros, a resposta ficaria pesada. Evolução natural: `LIMIT/OFFSET` (ou paginação por cursor) e total de itens no cabeçalho.
+
+## 026 — Testes de integração contra um PostgreSQL real
+- **Decisão:** Vitest + Supertest exercitam a API de ponta a ponta (HTTP → middlewares → service → SQL → banco), sem mocks do banco.
+- **Motivo:** as regras mais importantes vivem em queries (filtros, `UPDATE ... AND status = 'aberto'`, JOINs, fuso horário). Um mock não as validaria; já um teste de integração pegou, por exemplo, o filtro de data que devolvia 500 em vez de 400.
+- **Alternativas:** testes unitários com repositórios falsos (mais rápidos, mas não provam o SQL); SQLite em memória (dialeto diferente do Postgres).
+
+## 027 — Banco de testes isolado e recriado a cada teste
+- **Decisão:** os testes usam o banco `portal_test` (criado automaticamente no `globalSetup`) e, antes de cada teste, rodam `schema.sql` + `seed.sql`. Os arquivos de teste executam em série (`fileParallelism: false`).
+- **Motivo:** um teste nunca depende do que outro alterou, e usa exatamente os mesmos scripts que o avaliador executará (valida também o `schema.sql` e o `seed.sql`). O banco de desenvolvimento nunca é tocado.
+- **Custo:** ~3 s para a suíte inteira, aceitável. Em escala maior, trocaria o reset por transações com rollback.
+
+## 028 — Testes derivados das regras de negócio, com datas relativas
+- **Decisão:** os testes cobrem a matriz de permissões (3 perfis × operações), transições de status, validações, escopo dos filtros e concorrência (duas alterações simultâneas). Datas esperadas são calculadas a partir de "hoje", no fuso de Brasília.
+- **Motivo:** o seed usa datas relativas a `NOW()`; valores fixos fariam os testes quebrarem com o passar dos dias.
+- **Fora do escopo:** o rate limit do login fica desativado em `NODE_ENV=test` e não tem teste automatizado; o frontend não tem testes nesta entrega.
