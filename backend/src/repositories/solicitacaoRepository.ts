@@ -58,4 +58,22 @@ export const solicitacaoRepository = {
     const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC`, params);
     return rows.map(paraSolicitacao);
   },
+
+  // A condição `status = 'aberto'` no próprio UPDATE evita condição de corrida: se alguém mudou o status
+  // entre a verificação e a gravação, nenhuma linha é alterada. Retorna true se alterou.
+  async atualizar(id: number, dados: SolicitacaoInput): Promise<boolean> {
+    const { rowCount } = await query(
+      `UPDATE solicitacoes
+          SET titulo = $1, descricao = $2, categoria = $3, atualizado_em = NOW()
+        WHERE id = $4 AND status = 'aberto'`,
+      [dados.titulo, dados.descricao, dados.categoria, id],
+    );
+    return (rowCount ?? 0) > 0;
+  },
+
+  // Mesma proteção do atualizar: só exclui se ainda estiver aberta.
+  async excluir(id: number): Promise<boolean> {
+    const { rowCount } = await query(`DELETE FROM solicitacoes WHERE id = $1 AND status = 'aberto'`, [id]);
+    return (rowCount ?? 0) > 0;
+  },
 };
