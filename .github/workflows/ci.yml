@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Um novo push cancela a execução anterior da mesma branch (economiza tempo e minutos de CI).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (tipos, build e testes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    # Os testes de integração usam um PostgreSQL real, subido como serviço do job.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: dev
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # O globalSetup dos testes cria o banco "portal_test" sozinho.
+      TEST_DATABASE_URL: postgres://postgres:dev@localhost:5432/portal_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Verificação de tipos
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+      - name: Testes
+        run: npm test
+
+  frontend:
+    name: Frontend (tipos, lint, cores, testes e build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Verificação de tipos
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Nenhuma cor fora do tema
+        run: npm run check:cores
+      - name: Testes
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  e2e:
+    name: Ponta a ponta (Docker Compose + navegador)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Sobe o sistema completo (banco, API e interface)
+        run: docker compose up --build -d --wait --wait-timeout 240
+      - name: Instala as dependências dos testes E2E
+        working-directory: e2e
+        run: npm ci
+      - name: Roda os testes no navegador
+        working-directory: e2e
+        env:
+          APP_URL: http://localhost:8080
+          API_URL: http://localhost:8080/api
+          CHROME_PATH: /usr/bin/google-chrome
+        run: bash run.sh
+      - name: Logs dos contêineres (se algo falhou)
+        if: failure()
+        run: docker compose logs --no-color --tail 200
+      - name: Capturas de tela dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-capturas
+          path: e2e/resultados
+          if-no-files-found: ignore
+      - name: Derruba o sistema
+        if: always()
+        run: docker compose down -v
