@@ -14,7 +14,7 @@ export function LoginPage() {
   if (usuario) return <Navigate to={destino} replace />
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4">
+    <main className="relative flex min-h-screen items-center justify-center px-4">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
@@ -31,6 +31,6 @@ export function LoginPage() {
           </p>
         )}
       </div>
-    </div>
+    </main>
   )
 }

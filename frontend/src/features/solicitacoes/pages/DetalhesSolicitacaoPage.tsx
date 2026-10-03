@@ -16,6 +16,8 @@ export function DetalhesSolicitacaoPage() {
       <Link to={ROTAS.solicitacoes} className="text-sm text-textMuted hover:text-text">
         ← Voltar para a lista
       </Link>
+      {/* Quando ainda não há solicitação (carregando, erro, não encontrada) a página precisa de um título principal. */}
+      {!solicitacao && <h1 className="sr-only">Detalhes da solicitação</h1>}
       <EstadoDaBusca
         carregando={carregando}
         naoEncontrada={naoEncontrada || Number.isNaN(id)}
