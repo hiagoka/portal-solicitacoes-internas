@@ -55,11 +55,11 @@ export function SolicitacaoForm({ inicial, textoEnviar, onSubmit, onCancelar }: 
           </p>
         )}
 
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onCancelar} disabled={enviando}>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancelar} disabled={enviando} className="w-full sm:w-auto">
             Cancelar
           </Button>
-          <Button type="submit" loading={enviando}>
+          <Button type="submit" loading={enviando} className="w-full sm:w-auto">
             {textoEnviar}
           </Button>
         </div>
