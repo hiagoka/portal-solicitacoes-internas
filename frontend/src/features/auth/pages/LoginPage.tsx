@@ -1,15 +1,16 @@
 import { Navigate } from 'react-router'
 import { ThemeToggle } from '@/components/layout'
 import { Card } from '@/components/ui'
-import { ROTAS } from '@/constants'
 import { useAuth } from '@/hooks'
 import { LoginForm } from '../components/LoginForm'
+import { useDestinoPosLogin } from '../hooks/useDestinoPosLogin'
 
 export function LoginPage() {
   const { usuario } = useAuth()
+  const destino = useDestinoPosLogin()
 
   // Quem já está logado não precisa ver o login.
-  if (usuario) return <Navigate to={ROTAS.dashboard} replace />
+  if (usuario) return <Navigate to={destino} replace />
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4">

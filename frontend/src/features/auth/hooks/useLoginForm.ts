@@ -1,17 +1,14 @@
 import { useState, type FormEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router'
-import { ROTAS } from '@/constants'
+import { useNavigate } from 'react-router'
 import { useAuth } from '@/hooks'
 import { ApiError } from '@/services'
-
-type EstadoDeOrigem = { from?: { pathname: string } } | null
+import { useDestinoPosLogin } from './useDestinoPosLogin'
 
 // Estado e envio do formulário de login. O componente só desenha; as regras ficam aqui.
 export function useLoginForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const destino = (location.state as EstadoDeOrigem)?.from?.pathname ?? ROTAS.dashboard
+  const destino = useDestinoPosLogin()
 
   const [usuario, setUsuario] = useState('')
   const [senha, setSenha] = useState('')
