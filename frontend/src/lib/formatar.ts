@@ -25,3 +25,11 @@ export function formatarDataHora(iso: string): string {
 export function formatarCodigo(id: number): string {
   return `#${String(id).padStart(4, '0')}`
 }
+
+/** Faixa de itens exibida numa página: (2, 10, 23) → "11–20 de 23". Sem itens: "0 de 0". */
+export function formatarIntervalo(pagina: number, porPagina: number, total: number): string {
+  if (total === 0) return '0 de 0'
+  const inicio = (pagina - 1) * porPagina + 1
+  const fim = Math.min(pagina * porPagina, total)
+  return `${inicio}–${fim} de ${total}`
+}

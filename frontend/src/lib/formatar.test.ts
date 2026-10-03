@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatarCodigo, formatarData, formatarDataHora } from './formatar'
+import { formatarCodigo, formatarData, formatarDataHora, formatarIntervalo } from './formatar'
 
 describe('formatar', () => {
   it('formata a data no padrão brasileiro', () => {
@@ -16,5 +16,13 @@ describe('formatar', () => {
     expect(formatarCodigo(7)).toBe('#0007')
     expect(formatarCodigo(1234)).toBe('#1234')
     expect(formatarCodigo(12345)).toBe('#12345')
+  })
+
+  it('mostra a faixa de itens da página', () => {
+    expect(formatarIntervalo(1, 10, 23)).toBe('1–10 de 23')
+    expect(formatarIntervalo(2, 10, 23)).toBe('11–20 de 23')
+    expect(formatarIntervalo(3, 10, 23)).toBe('21–23 de 23') // última página, incompleta
+    expect(formatarIntervalo(1, 10, 1)).toBe('1–1 de 1')
+    expect(formatarIntervalo(1, 10, 0)).toBe('0 de 0')
   })
 })
