@@ -20,4 +20,17 @@ export const solicitacaoController = {
     const solicitacoes = await solicitacaoService.listar(req.usuario!);
     res.json({ solicitacoes });
   },
+
+  async editar(req: Request, res: Response) {
+    const { id } = res.locals.params as { id: number };
+    const dados = res.locals.body as SolicitacaoInput;
+    const solicitacao = await solicitacaoService.editar(req.usuario!, id, dados);
+    res.json({ solicitacao });
+  },
+
+  async excluir(req: Request, res: Response) {
+    const { id } = res.locals.params as { id: number };
+    await solicitacaoService.excluir(req.usuario!, id);
+    res.status(204).end();
+  },
 };
