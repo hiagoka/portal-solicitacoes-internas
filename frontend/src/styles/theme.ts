@@ -39,15 +39,15 @@ const light: Palette = {
   textMuted: '#526077',
   border: '#E2E8F0',
   overlay: 'rgb(15 23 42 / 0.5)',
-  success: '#15803D',
-  warning: '#B45309',
+  success: '#166534',
+  warning: '#92400E',
   danger: '#B91C1C',
   dangerHover: '#991B1B',
   onDanger: '#FFFFFF',
   status: {
     aberto: '#0369A1',
-    emAtendimento: '#B45309',
-    concluido: '#15803D',
+    emAtendimento: '#92400E',
+    concluido: '#166534',
   },
 }
 
