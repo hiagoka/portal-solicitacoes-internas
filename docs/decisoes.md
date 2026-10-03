@@ -184,3 +184,23 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** o fluxo foi validado com um script `puppeteer-core` (descartável, fora do repositório) dirigindo o Chrome contra o backend e o frontend reais: 17 verificações (rota protegida, validação, senha errada, login, persistência após recarregar, `/login` estando logado, rota 404, alternância e persistência do tema, logout, deep link, perfil do atendente, ausência de erros no console).
 - **Motivo:** testes unitários não pegariam problemas de integração como a corrida da decisão 038.
 - **Limitação:** o script não está versionado; transformá-lo em suíte E2E do projeto é uma melhoria futura.
+
+## 040 — Filtros da listagem: estado local, com debounce só na busca
+- **Decisão:** o hook `useFiltrosSolicitacoes` mantém dois conjuntos: `filtros` (o que está nos campos agora) e `aplicados` (o que vai para a API). Só o texto da busca passa por debounce de 300 ms; status, categoria e datas aplicam na hora.
+- **Motivo:** uma requisição por tecla digitada desperdiça rede e faz a lista "tremer"; já selects e datas são escolhas discretas e o usuário espera resposta imediata. Verificado no navegador: digitar 4 letras gera no máximo 1 requisição.
+- **Período invertido:** é detectado no cliente, mostra o aviso no campo e não é enviado (a API responderia 400). Verificado: nenhuma resposta 400 durante o teste.
+- **Limitação:** os filtros não ficam na URL, então não sobrevivem a um recarregamento nem podem ser compartilhados por link. Melhoria futura.
+
+## 041 — Busca de dados sem estado de "carregando" sincronizado em efeito
+- **Decisão:** `useSolicitacoes` guarda o resultado junto com a "chave" da busca que o gerou (`[status, categoria, busca, de, ate, tentativa]`). `carregando` e `erro` são **derivados** comparando essa chave com a atual. Respostas de buscas obsoletas são descartadas.
+- **Motivo:** a primeira versão chamava `setState` de forma síncrona dentro do efeito, e o lint do React avisou (renderização em cascata). Derivar o estado elimina o aviso e o risco de mostrar o resultado de uma busca antiga. Bônus: enquanto a nova busca roda, a lista anterior continua visível e esmaecida, sem piscar.
+- **Alternativas:** TanStack Query (cache, retentativas e estados prontos, mas uma dependência a mais para um único fluxo de leitura).
+
+## 042 — Datas e códigos exibidos
+- **Decisão:** datas formatadas em pt-BR no fuso `America/Sao_Paulo` (`lib/formatar.ts`), o mesmo usado pelo filtro de período da API (decisão 022); código da solicitação exibido como `#0001`.
+- **Motivo:** o dia que o usuário vê na tabela é o mesmo dia que o filtro compara; testado com um horário que é o dia seguinte em UTC mas o mesmo dia em Brasília.
+
+## 043 — Tabela da listagem: rolagem horizontal por enquanto
+- **Decisão:** em telas pequenas a tabela rola horizontalmente. A conversão para cartões fica para a fase de responsividade (14.2).
+- **Motivo:** priorizar o fluxo funcional; verificado em 390 px que nada quebra, mas a leitura não é ideal.
+- **Também:** o script `check:cores` passou a ignorar comentários e arquivos de teste, após acusar `#0007` (exemplo de código) como cor hexadecimal.

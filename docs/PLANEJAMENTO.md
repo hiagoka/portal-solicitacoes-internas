@@ -138,13 +138,13 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 
 ## Fase 9 — Listagem
 - [x] **9.1** Criar `services/solicitacaoService.ts` (funções de chamada à API)
-- [ ] **9.2** Criar a página de listagem com tabela (código, título, categoria, solicitante, data, status)
-- [ ] **9.3** Criar o componente `StatusBadge`
-- [ ] **9.4** Criar estados de carregando, vazio e erro
-- [ ] **9.5** Criar a barra de filtros (status e categoria)
-- [ ] **9.6** Adicionar filtros de texto e período
-- [ ] **9.7** Adicionar o debounce na busca por texto
-- [ ] **9.8** Adicionar a paginação
+- [x] **9.2** Criar a página de listagem com tabela (código, título, categoria, solicitante, data, status)
+- [x] **9.3** Criar o componente `StatusBadge`
+- [x] **9.4** Criar estados de carregando, vazio e erro
+- [x] **9.5** Criar a barra de filtros (status e categoria)
+- [x] **9.6** Adicionar filtros de texto e período
+- [x] **9.7** Adicionar o debounce na busca por texto
+- [ ] **9.8** Adicionar a paginação *(adiada: ver decisão 025)*
 
 ## Fase 10 — Formulários e detalhes
 - [ ] **10.1** Criar o componente de formulário (título, descrição, categoria) com validação
