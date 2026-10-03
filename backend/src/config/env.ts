@@ -10,6 +10,8 @@ const schema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET precisa ter ao menos 16 caracteres'),
   JWT_EXPIRES_IN: z.string().default('8h'),
   COOKIE_SECURE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  // true quando a API roda atrás de um proxy reverso (nginx), para enxergar o IP real do cliente.
+  TRUST_PROXY: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 });
 
