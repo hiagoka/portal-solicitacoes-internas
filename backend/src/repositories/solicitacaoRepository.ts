@@ -66,6 +66,7 @@ export const solicitacaoRepository = {
 
     if (filtros.usuarioId !== undefined) adicionar('s.usuario_id = ?', filtros.usuarioId);
     if (filtros.status) adicionar('s.status = ?', filtros.status);
+    if (filtros.categoria) adicionar('s.categoria = ?', filtros.categoria);
     // [filtros adicionais]
 
     const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
