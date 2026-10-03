@@ -14,7 +14,7 @@ RAIZ="$(cd .. && pwd)"
 export APP_URL="${APP_URL:-http://localhost:8080}"
 export API_URL="${API_URL:-http://localhost:8080/api}"
 DB_EXEC="${DB_EXEC:-docker compose -f $RAIZ/docker-compose.yml exec -T db psql -q -v ON_ERROR_STOP=1 -U portal -d portal}"
-SUITES="${SUITES:-auth lista crud dashboard}"
+SUITES="${SUITES:-auth lista crud dashboard acessibilidade responsivo}"
 
 restaurar_banco() {
   # Mesmos scripts que inicializam o sistema: o teste parte sempre do estado de demonstração.
