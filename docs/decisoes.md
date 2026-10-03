@@ -86,3 +86,31 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 019 — Mensagens de validação em português
 - **Decisão:** `z.config(z.locales.pt())` na inicialização, mais mensagens customizadas nos campos de negócio.
 - **Motivo:** a interface é em português; o frontend pode exibir `detalhes[].mensagem` diretamente.
+
+## 020 — WHERE dinâmico com valores sempre parametrizados
+- **Decisão:** a listagem monta o `WHERE` somando condições fixas no código (`s.status = $2`, ...) e envia os valores em `params`. O texto SQL nunca recebe dados do usuário.
+- **Motivo:** combinar filtros opcionais sem concatenar entrada do usuário na query, eliminando SQL injection. Campos vazios (`?status=`) são tratados como "não informado" pelo schema.
+
+## 021 — Busca textual com `ILIKE` e escape de curingas
+- **Decisão:** busca por parte do título com `ILIKE '%texto%' ESCAPE '\'`, escapando `%`, `_` e `\` digitados pelo usuário.
+- **Motivo:** sem diferenciar maiúsculas/minúsculas e sem que "%" funcione como curinga. Verificado: buscar `%` não retorna tudo.
+- **Limitação:** `%texto%` não usa índice comum; para volume grande, usar `pg_trgm` ou busca full-text.
+
+## 022 — Filtro de período pelo dia no fuso de Brasília
+- **Decisão:** comparar `(criado_em AT TIME ZONE 'America/Sao_Paulo')::date` com as datas informadas, de forma inclusiva nas duas pontas.
+- **Motivo:** o banco guarda `TIMESTAMPTZ` (UTC). Sem a conversão, uma solicitação aberta às 22h de Brasília cairia no dia seguinte e o filtro "daria errado" para o usuário.
+- **Limitação:** fuso fixo no código; um sistema multi-região precisaria do fuso do usuário.
+
+## 023 — Transições de status explícitas
+- **Decisão:** mapa `TRANSICOES` em `types/solicitacao.ts`: aberto → em_atendimento | concluido; em_atendimento → aberto | concluido; concluido → em_atendimento (reabrir). Mesmo status ou transição fora do mapa responde 409.
+- **Motivo:** o enunciado só lista os três status; impedir saltos inconsistentes (ex.: concluído voltar direto a aberto, o que permitiria ao autor editar de novo algo já atendido).
+- **Concorrência:** o `UPDATE` inclui `AND status = <atual>`; se outro atendente alterou antes, a operação responde 409 em vez de sobrescrever.
+
+## 024 — Dashboard com uma consulta agrupada
+- **Decisão:** `SELECT status, COUNT(*) ... GROUP BY status`, com escopo por perfil (atendente: global; solicitante: só as suas). Status sem registros são completados com zero no service.
+- **Motivo:** uma ida ao banco em vez de quatro `COUNT` separados; a regra de escopo é a mesma da listagem.
+
+## 025 — Paginação adiada
+- **Decisão:** a listagem devolve todas as solicitações do escopo, sem paginação.
+- **Motivo:** priorizar os requisitos obrigatórios dentro do prazo; o volume esperado é pequeno.
+- **Limitação / melhoria futura:** com milhares de registros, a resposta ficaria pesada. Evolução natural: `LIMIT/OFFSET` (ou paginação por cursor) e total de itens no cabeçalho.

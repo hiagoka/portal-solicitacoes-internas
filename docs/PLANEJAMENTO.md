@@ -95,17 +95,17 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **4.14** Criar `DELETE /solicitacoes/:id`
 
 ## Fase 5 — Filtros, status e dashboard
-- [ ] **5.1** Filtro por status na listagem
-- [ ] **5.2** Filtro por categoria
-- [ ] **5.3** Filtro por texto livre no título (ILIKE)
-- [ ] **5.4** Filtro por período (data inicial e final)
-- [ ] **5.5** Combinar os filtros com query parametrizada (sem concatenar SQL)
-- [ ] **5.6** Validar os parâmetros de query com zod
-- [ ] **5.7** Adicionar paginação à listagem
-- [ ] **5.8** Criar `PATCH /solicitacoes/:id/status` (só atendente)
-- [ ] **5.9** Validar transições de status permitidas
-- [ ] **5.10** Criar `dashboardRepository` (contagens por status com GROUP BY)
-- [ ] **5.11** Criar `GET /dashboard` (escopo por perfil)
+- [x] **5.1** Filtro por status na listagem
+- [x] **5.2** Filtro por categoria
+- [x] **5.3** Filtro por texto livre no título (ILIKE)
+- [x] **5.4** Filtro por período (data inicial e final)
+- [x] **5.5** Combinar os filtros com query parametrizada (sem concatenar SQL)
+- [x] **5.6** Validar os parâmetros de query com zod
+- [ ] **5.7** Adicionar paginação à listagem *(adiada: ver decisão 025)*
+- [x] **5.8** Criar `PATCH /solicitacoes/:id/status` (só atendente)
+- [x] **5.9** Validar transições de status permitidas
+- [x] **5.10** Criar `dashboardRepository` (contagens por status com GROUP BY)
+- [x] **5.11** Criar `GET /dashboard` (escopo por perfil)
 
 ## Fase 6 — Testes do backend
 - [ ] **6.1** Configurar Vitest + Supertest e um banco de testes
