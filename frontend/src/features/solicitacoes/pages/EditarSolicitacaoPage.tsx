@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { EmptyState, LinkButton } from '@/components/ui'
 import { ROTAS } from '@/constants'
-import { useAuth } from '@/hooks'
+import { useAuth, useTituloDaPagina } from '@/hooks'
 import { EstadoDaBusca } from '../components/EstadoDaBusca'
 import { SolicitacaoForm } from '../components/SolicitacaoForm'
 import { useEditarSolicitacao, useIdDaRota, useSolicitacao } from '../hooks'
@@ -9,6 +9,7 @@ import { podeEditarOuExcluir } from '../utils/permissoes'
 
 export function EditarSolicitacaoPage() {
   const id = useIdDaRota()
+  useTituloDaPagina('Editar solicitação')
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const { solicitacao, carregando, erro, naoEncontrada, recarregar } = useSolicitacao(id)

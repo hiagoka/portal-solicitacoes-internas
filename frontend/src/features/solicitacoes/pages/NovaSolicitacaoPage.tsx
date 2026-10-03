@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router'
 import { ROTAS } from '@/constants'
+import { useTituloDaPagina } from '@/hooks'
 import { SolicitacaoForm } from '../components/SolicitacaoForm'
 import { useCriarSolicitacao } from '../hooks'
 
 export function NovaSolicitacaoPage() {
   const navigate = useNavigate()
+  useTituloDaPagina('Nova solicitação')
   const criar = useCriarSolicitacao()
 
   return (

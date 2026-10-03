@@ -1,6 +1,6 @@
 import { Button, Card, EmptyState, LinkButton, Spinner } from '@/components/ui'
 import { ROTAS } from '@/constants'
-import { useAuth } from '@/hooks'
+import { useAuth, useTituloDaPagina } from '@/hooks'
 import { FiltrosBar } from '../components/FiltrosBar'
 import { PaginacaoListagem } from '../components/PaginacaoListagem'
 import { SolicitacaoTable } from '../components/SolicitacaoTable'
@@ -9,6 +9,7 @@ import { useFiltrosSolicitacoes, useSolicitacoes } from '../hooks'
 // A página só monta a tela: os dados vêm dos hooks e cada pedaço visual é um componente.
 export function ListaSolicitacoesPage() {
   const { usuario } = useAuth()
+  useTituloDaPagina('Solicitações')
   const f = useFiltrosSolicitacoes()
   const { solicitacoes, paginacao, carregando, erro, recarregar } = useSolicitacoes(f.aplicados)
 

@@ -1,12 +1,13 @@
 import { Navigate } from 'react-router'
 import { ThemeToggle } from '@/components/layout'
 import { Card } from '@/components/ui'
-import { useAuth } from '@/hooks'
+import { useAuth, useTituloDaPagina } from '@/hooks'
 import { LoginForm } from '../components/LoginForm'
 import { useDestinoPosLogin } from '../hooks/useDestinoPosLogin'
 
 export function LoginPage() {
   const { usuario } = useAuth()
+  useTituloDaPagina('Entrar')
   const destino = useDestinoPosLogin()
 
   // Quem já está logado não precisa ver o login.

@@ -1,7 +1,9 @@
 import { EmptyState, LinkButton } from '@/components/ui'
 import { ROTAS } from '@/constants'
+import { useTituloDaPagina } from '@/hooks'
 
 export function NotFoundPage() {
+  useTituloDaPagina('Página não encontrada')
   return (
     <EmptyState
       title="Página não encontrada"

@@ -1,12 +1,13 @@
 import { Button, EmptyState, LinkButton, Spinner } from '@/components/ui'
 import { ROTAS } from '@/constants'
-import { useAuth } from '@/hooks'
+import { useAuth, useTituloDaPagina } from '@/hooks'
 import { DistribuicaoBar } from '../components/DistribuicaoBar'
 import { IndicadorCard } from '../components/IndicadorCard'
 import { useDashboard } from '../hooks/useDashboard'
 
 export function DashboardPage() {
   const { usuario } = useAuth()
+  useTituloDaPagina('Dashboard')
   const { indicadores, carregando, erro, recarregar } = useDashboard()
   const ehAtendente = usuario?.perfil === 'atendente'
 
