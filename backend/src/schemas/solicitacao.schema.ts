@@ -23,7 +23,12 @@ const dataIso = z.preprocess(
   z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use o formato AAAA-MM-DD')
-    .refine((v) => new Date(`${v}T00:00:00Z`).toISOString().slice(0, 10) === v, 'Data inválida')
+    // O refine roda mesmo se o regex acima falhar, então precisa tolerar entradas que não são datas:
+    // toISOString() lançaria RangeError (500) numa data inválida.
+    .refine((v) => {
+      const data = new Date(`${v}T00:00:00Z`);
+      return !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === v;
+    }, 'Data inválida')
     .optional(),
 );
 
