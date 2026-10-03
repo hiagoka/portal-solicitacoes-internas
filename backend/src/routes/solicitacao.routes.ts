@@ -11,3 +11,5 @@ solicitacaoRoutes.use('/solicitacoes', autenticar); // todas as rotas abaixo exi
 solicitacaoRoutes.get('/solicitacoes', solicitacaoController.listar);
 solicitacaoRoutes.post('/solicitacoes', validar(solicitacaoSchema), solicitacaoController.criar);
 solicitacaoRoutes.get('/solicitacoes/:id', validar(idParamSchema, 'params'), solicitacaoController.obter);
+solicitacaoRoutes.put('/solicitacoes/:id', validar(idParamSchema, 'params'), validar(solicitacaoSchema), solicitacaoController.editar);
+solicitacaoRoutes.delete('/solicitacoes/:id', validar(idParamSchema, 'params'), solicitacaoController.excluir);
