@@ -147,14 +147,14 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [ ] **9.8** Adicionar a paginação *(adiada: ver decisão 025)*
 
 ## Fase 10 — Formulários e detalhes
-- [ ] **10.1** Criar o componente de formulário (título, descrição, categoria) com validação
-- [ ] **10.2** Criar a página "Nova solicitação"
-- [ ] **10.3** Criar a página "Editar solicitação" (preenche os dados atuais)
-- [ ] **10.4** Criar a página de Detalhes
-- [ ] **10.5** Adicionar os botões Editar e Excluir (só aparecem se aberta e do autor)
-- [ ] **10.6** Criar o modal de confirmação de exclusão
-- [ ] **10.7** Criar o seletor de alteração de status (só atendente)
-- [ ] **10.8** Criar notificações de sucesso e erro (toast)
+- [x] **10.1** Criar o componente de formulário (título, descrição, categoria) com validação
+- [x] **10.2** Criar a página "Nova solicitação"
+- [x] **10.3** Criar a página "Editar solicitação" (preenche os dados atuais)
+- [x] **10.4** Criar a página de Detalhes
+- [x] **10.5** Adicionar os botões Editar e Excluir (só aparecem se aberta e do autor)
+- [x] **10.6** Criar o modal de confirmação de exclusão
+- [x] **10.7** Criar o seletor de alteração de status (só atendente)
+- [x] **10.8** Criar notificações de sucesso e erro (toast)
 
 ## Fase 11 — Dashboard
 - [x] **11.1** Criar `services/dashboardService.ts`

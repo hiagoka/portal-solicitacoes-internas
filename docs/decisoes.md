@@ -204,3 +204,20 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** em telas pequenas a tabela rola horizontalmente. A conversão para cartões fica para a fase de responsividade (14.2).
 - **Motivo:** priorizar o fluxo funcional; verificado em 390 px que nada quebra, mas a leitura não é ideal.
 - **Também:** o script `check:cores` passou a ignorar comentários e arquivos de teste, após acusar `#0007` (exemplo de código) como cor hexadecimal.
+
+## 044 — Formulário: validação local espelhando a API + erros do servidor por campo
+- **Decisão:** `utils/validacao.ts` repete as regras da API (título 3–150, descrição 1–5000, categoria obrigatória) para dar resposta imediata, com testes unitários. Se a API ainda assim devolver 400, cada `detalhes[].campo` é mostrado no campo correspondente; erros sem campo (rede, 5xx) aparecem num aviso geral. O erro de um campo some assim que o usuário o edita.
+- **Motivo:** validar só no servidor deixa o usuário esperando um round-trip; validar só no cliente é contornável. As duas camadas se complementam e a API continua sendo a autoridade.
+- **Detalhes:** contador de caracteres na descrição, `maxLength` nos campos, botão com `loading` bloqueando envio duplicado, uma mesma tela de formulário para criar e editar.
+
+## 045 — Permissões na interface espelham a API (que continua sendo a autoridade)
+- **Decisão:** `utils/permissoes.ts` decide o que mostrar: Editar/Excluir só para o autor de uma solicitação aberta; "Atendimento" só para o atendente, com apenas as transições válidas do status atual. O diálogo de exclusão nem é renderizado para quem não pode excluir.
+- **Motivo:** não oferecer botões que resultariam em erro. Se alguém forçar a URL (`/solicitacoes/2/editar`), a tela mostra "não pode ser editada" e, mesmo que enviasse a requisição, a API responderia 403/404/409. Verificado no navegador com os três perfis de situação.
+
+## 046 — Ações com erro: toast com a mensagem da API e recarga da solicitação
+- **Decisão:** excluir e mudar status ficam em hooks (`useAcoesDetalhes`). Em caso de falha, o hook mostra um toast com a mensagem da API e recarrega a solicitação, pois o motivo costuma ser que ela mudou depois que a tela abriu. A exclusão fecha o modal **antes** do toast de erro (limitação do `<dialog>`, decisão 036).
+- **Verificado:** cenário real em que o atendente assume a solicitação enquanto a autora está na tela de detalhes; ao confirmar a exclusão, a API responde 409, o modal fecha, o toast aparece e a tela passa a refletir o novo estado sem Editar/Excluir.
+
+## 047 — `LinkButton`: navegação com aparência de botão sem aninhar elementos interativos
+- **Decisão:** componente `LinkButton` (renderiza `<a>`) compartilha o visual com `Button` via `buttonStyles.ts`. Substituiu `<Link><Button/></Link>`, que aninha um botão dentro de um link (HTML inválido e problemático para teclado e leitores de tela).
+- **Motivo:** corrigir um erro de acessibilidade que eu mesmo havia introduzido na listagem, sem duplicar as classes de estilo.
