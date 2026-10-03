@@ -8,5 +8,6 @@ export const solicitacaoRoutes = Router();
 
 solicitacaoRoutes.use('/solicitacoes', autenticar); // todas as rotas abaixo exigem login
 
+solicitacaoRoutes.get('/solicitacoes', solicitacaoController.listar);
 solicitacaoRoutes.post('/solicitacoes', validar(solicitacaoSchema), solicitacaoController.criar);
 solicitacaoRoutes.get('/solicitacoes/:id', validar(idParamSchema, 'params'), solicitacaoController.obter);

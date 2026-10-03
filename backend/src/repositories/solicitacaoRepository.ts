@@ -50,4 +50,12 @@ export const solicitacaoRepository = {
     const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} WHERE s.id = $1`, [id]);
     return rows[0] ? paraSolicitacao(rows[0]) : null;
   },
+
+  // `usuarioId` restringe às solicitações de um usuário (solicitante); sem ele lista todas (atendente).
+  async listar(usuarioId?: number): Promise<Solicitacao[]> {
+    const where = usuarioId === undefined ? '' : 'WHERE s.usuario_id = $1';
+    const params = usuarioId === undefined ? [] : [usuarioId];
+    const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC`, params);
+    return rows.map(paraSolicitacao);
+  },
 };

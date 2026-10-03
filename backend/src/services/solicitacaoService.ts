@@ -19,4 +19,9 @@ export const solicitacaoService = {
     if (!solicitacao || !visivel) throw AppError.notFound('Solicitação não encontrada');
     return solicitacao;
   },
+
+  // Atendente lista todas; solicitante apenas as próprias.
+  async listar(usuario: UsuarioPublico): Promise<Solicitacao[]> {
+    return solicitacaoRepository.listar(usuario.perfil === 'atendente' ? undefined : usuario.id);
+  },
 };

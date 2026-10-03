@@ -15,4 +15,9 @@ export const solicitacaoController = {
     const solicitacao = await solicitacaoService.obter(req.usuario!, id);
     res.json({ solicitacao });
   },
+
+  async listar(req: Request, res: Response) {
+    const solicitacoes = await solicitacaoService.listar(req.usuario!);
+    res.json({ solicitacoes });
+  },
 };
