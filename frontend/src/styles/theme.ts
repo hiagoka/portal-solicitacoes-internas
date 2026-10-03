@@ -20,6 +20,7 @@ export interface Palette {
   warning: string
   danger: string
   dangerHover: string
+  onDanger: string // texto sobre fundo danger
   status: {
     aberto: string
     emAtendimento: string
@@ -42,6 +43,7 @@ const light: Palette = {
   warning: '#B45309',
   danger: '#B91C1C',
   dangerHover: '#991B1B',
+  onDanger: '#FFFFFF',
   status: {
     aberto: '#0369A1',
     emAtendimento: '#B45309',
@@ -64,6 +66,7 @@ const dark: Palette = {
   warning: '#FBBF24',
   danger: '#F87171',
   dangerHover: '#FCA5A5',
+  onDanger: '#0B1020',
   status: {
     aberto: '#38BDF8',
     emAtendimento: '#FBBF24',
