@@ -12,39 +12,43 @@ const LINKS = [
 
 function classeDoLink({ isActive }: { isActive: boolean }) {
   return cn(
-    'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+    'flex min-h-10 items-center rounded-md px-3 text-sm font-medium transition-colors',
     isActive ? 'bg-primary/10 text-primary' : 'text-textMuted hover:text-text',
   )
 }
 
+// Em telas largas: marca, navegação e ações na mesma linha. No celular: marca e ações em cima, navegação embaixo
+// (a ordem visual muda por CSS; no HTML a leitura continua marca → navegação → ações).
 export function Header() {
   const { usuario, logout } = useAuth()
+  const perfil = usuario && <Badge tone="primary">{PERFIL_LABEL[usuario.perfil]}</Badge>
 
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-          <Link to={ROTAS.dashboard} className="text-base font-semibold text-text">
-            Portal de Solicitações
-          </Link>
-          <nav aria-label="Principal" className="flex gap-1">
-            {LINKS.map((link) => (
-              <NavLink key={link.to} to={link.to} end={link.exato} className={classeDoLink}>
-                {link.texto}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2">
+        <Link to={ROTAS.dashboard} className="order-1 py-1 text-base font-semibold text-text">
+          Portal de Solicitações
+        </Link>
 
-        <div className="flex items-center gap-2">
+        <nav aria-label="Principal" className="order-3 flex w-full items-center gap-1 md:order-2 md:w-auto">
+          {LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} end={link.exato} className={classeDoLink}>
+              {link.texto}
+            </NavLink>
+          ))}
+          {/* No celular o nome não cabe na primeira linha: só o perfil aparece, no fim da linha da navegação. */}
+          <span className="ml-auto sm:hidden">{perfil}</span>
+        </nav>
+
+        <div className="order-2 ml-auto flex items-center gap-2 md:order-3">
           {usuario && (
             <div className="hidden items-center gap-2 pr-2 sm:flex">
               <span className="text-sm text-text">{usuario.nome}</span>
-              <Badge tone="primary">{PERFIL_LABEL[usuario.perfil]}</Badge>
+              {perfil}
             </div>
           )}
           <ThemeToggle />
-          <Button variant="secondary" size="sm" onClick={() => void logout()}>
+          <Button variant="secondary" onClick={() => void logout()}>
             Sair
           </Button>
         </div>
