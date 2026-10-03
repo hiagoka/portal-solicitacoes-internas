@@ -8,6 +8,8 @@ type ButtonProps = ComponentPropsWithoutRef<'button'> & {
   /** Mostra um spinner e bloqueia o clique (evita envio duplicado de formulários). */
   loading?: boolean
   fullWidth?: boolean
+  /** Botão quadrado só com ícone (lembre de dar `aria-label`). */
+  iconOnly?: boolean
 }
 
 export function Button({
@@ -15,6 +17,7 @@ export function Button({
   size = 'md',
   loading = false,
   fullWidth = false,
+  iconOnly = false,
   disabled,
   className,
   children,
@@ -26,7 +29,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={botaoClasses(variant, size, fullWidth, className)}
+      className={botaoClasses(variant, size, fullWidth, className, iconOnly)}
       {...props}
     >
       {loading && <Spinner size="sm" label="Processando" />}

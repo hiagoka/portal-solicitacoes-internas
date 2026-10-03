@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      className="size-10 px-0"
+      iconOnly
       onClick={toggle}
       aria-label={isDark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}
       title={isDark ? 'Tema claro' : 'Tema escuro'}
