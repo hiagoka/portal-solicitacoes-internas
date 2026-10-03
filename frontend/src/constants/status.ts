@@ -9,10 +9,10 @@ export const STATUS_LABEL: Record<Status, string> = {
 }
 
 // Classes escritas por extenso (e não montadas com template string) para o Tailwind conseguir detectá-las.
-export const STATUS_CLASSES: Record<Status, { texto: string; fundo: string }> = {
-  aberto: { texto: 'text-status-aberto', fundo: 'bg-status-aberto/10' },
-  em_atendimento: { texto: 'text-status-emAtendimento', fundo: 'bg-status-emAtendimento/10' },
-  concluido: { texto: 'text-status-concluido', fundo: 'bg-status-concluido/10' },
+export const STATUS_CLASSES: Record<Status, { texto: string; fundo: string; barra: string }> = {
+  aberto: { texto: 'text-status-aberto', fundo: 'bg-status-aberto/10', barra: 'bg-status-aberto' },
+  em_atendimento: { texto: 'text-status-emAtendimento', fundo: 'bg-status-emAtendimento/10', barra: 'bg-status-emAtendimento' },
+  concluido: { texto: 'text-status-concluido', fundo: 'bg-status-concluido/10', barra: 'bg-status-concluido' },
 }
 
 // Espelha as transições aceitas pela API, só para mostrar ao atendente opções válidas.

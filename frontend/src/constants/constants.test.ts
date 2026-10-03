@@ -7,6 +7,7 @@ describe('constantes', () => {
       expect(STATUS_LABEL[status]).toBeTruthy()
       expect(STATUS_CLASSES[status].texto).toMatch(/^text-status-/)
       expect(STATUS_CLASSES[status].fundo).toMatch(/^bg-status-.*\/10$/)
+      expect(STATUS_CLASSES[status].barra).toMatch(/^bg-status-[a-zA-Z]+$/)
       expect(STATUS_TRANSICOES[status]).toBeDefined()
     }
   })
