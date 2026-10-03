@@ -12,7 +12,6 @@ const SAIDA = process.env.E2E_OUT ?? new URL('../resultados/', import.meta.url).
 
 export const pausa = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 export const diasAtras = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10)
-export const dataParaDigitar = (iso) => iso.split('-').reverse().join('') // 2026-10-03 → 03102026 (campo date pt-BR)
 
 export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}) {
   mkdirSync(SAIDA, { recursive: true })
@@ -78,6 +77,16 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
       if (!label) throw new Error(`Nenhum campo com rótulo "${t}"`)
       return document.getElementById(label.htmlFor)
     }, rotulo)
+  // Define a data de um <input type=date> SEM digitar: o que o campo aceita ao digitar depende do idioma do
+  // navegador (DD/MM/AAAA em pt-BR, MM/DD/AAAA em en-US), mas o valor interno é sempre AAAA-MM-DD.
+  // Usa o setter nativo + evento "input" para o React perceber a mudança.
+  const preencherData = async (rotulo, iso) => {
+    const input = await campo(rotulo)
+    await input.evaluate((el, valor) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, valor)
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    }, iso)
+  }
   const ir = async (rota) => {
     await pagina.goto(APP_URL + rota, { waitUntil: 'networkidle0' })
     await pausa(300)
@@ -124,6 +133,6 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   return {
     pagina, checar, finalizar, bloqueio, rede, errosDeConsole,
     esperar, texto, temTexto, caminho, linhasDaTabela, codigos, opcoesDoSelect,
-    clicar, temBotao, temTitulo, campo, ir, entrar, sair, foto, apiComo, pausa,
+    clicar, temBotao, temTitulo, campo, preencherData, ir, entrar, sair, foto, apiComo, pausa,
   }
 }

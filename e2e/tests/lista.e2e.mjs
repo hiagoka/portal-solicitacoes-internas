@@ -1,8 +1,8 @@
 // Listagem: escopo por perfil, filtros, debounce, período inválido, estados vazio/erro.
-import { dataParaDigitar, diasAtras, iniciar, pausa } from '../lib/harness.mjs'
+import { diasAtras, iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('lista', { largura: 1200, altura: 900 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, codigos, linhasDaTabela, rede } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, preencherData, codigos, linhasDaTabela, rede } = t
 
 async function irParaLista() {
   await ir('/solicitacoes')
@@ -49,12 +49,12 @@ await t.foto('vazio')
 await clicar('Limpar filtros'); await pausa(600)
 
 // período
-await (await campo('a partir de')).type(dataParaDigitar(diasAtras(7)))
+await preencherData('a partir de', diasAtras(7))
 await pausa(800)
 checar('7 período "a partir de" 7 dias atrás', JSON.stringify(await codigos()) === JSON.stringify(['#0001', '#0002']), JSON.stringify(await codigos()))
 const respostas400 = () => rede.filter((r) => r.status === 400).length
 const antes400 = respostas400()
-await (await campo('Aberta até')).type(dataParaDigitar(diasAtras(20)))
+await preencherData('Aberta até', diasAtras(20))
 await pausa(800)
 checar('8 período invertido mostra aviso no campo', await temTexto('A data inicial não pode ser maior que a final.'))
 checar('8 e nenhuma requisição inválida (400) é enviada', respostas400() === antes400, `400s=${respostas400() - antes400}`)
