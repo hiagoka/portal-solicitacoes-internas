@@ -158,7 +158,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 
 ## 034 — Testes do frontend limitados à camada de acesso e às constantes
 - **Decisão:** Vitest cobre o `httpClient` (query, JSON, 204, erros, rede, sessão expirada) e a consistência das constantes. Os serviços foram verificados uma vez contra a API real (script descartável, não versionado).
-- **Motivo:** é onde um erro de contrato ou de tratamento de falha afetaria todas as telas, com baixo custo. Testes de componentes ficam como melhoria futura.
+- **Motivo:** é onde um erro de contrato ou de tratamento de falha afetaria todas as telas, com baixo custo. Testes de componentes ficam como melhoria futura; o fluxo de tela é coberto pelos testes E2E em navegador real (decisão 057).
 
 ## 035 — Biblioteca de componentes própria em `components/ui`
 - **Decisão:** 10 componentes genéricos (Button, Input, Select, Textarea, Badge, Modal, Card, Spinner, EmptyState, Toast) escritos à mão, com variantes por props (`variant`, `size`, `tone`, `padding`), tipos derivados dos elementos HTML (`ComponentPropsWithoutRef`) e no máximo ~65 linhas cada. Cores só pelos nomes do tema.
@@ -184,7 +184,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 039 — Verificação do fluxo de autenticação com navegador real
 - **Decisão:** o fluxo foi validado com um script `puppeteer-core` (descartável, fora do repositório) dirigindo o Chrome contra o backend e o frontend reais: 17 verificações (rota protegida, validação, senha errada, login, persistência após recarregar, `/login` estando logado, rota 404, alternância e persistência do tema, logout, deep link, perfil do atendente, ausência de erros no console).
 - **Motivo:** testes unitários não pegariam problemas de integração como a corrida da decisão 038.
-- **Limitação:** o script não está versionado; transformá-lo em suíte E2E do projeto é uma melhoria futura.
+- **Revisão:** os scripts foram depois versionados em `e2e/` e passaram a rodar no CI (decisão 057).
 
 ## 040 — Filtros da listagem: estado local, com debounce só na busca
 - **Decisão:** o hook `useFiltrosSolicitacoes` mantém dois conjuntos: `filtros` (o que está nos campos agora) e `aplicados` (o que vai para a API). Só o texto da busca passa por debounce de 300 ms; status, categoria e datas aplicam na hora.
@@ -262,3 +262,20 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 055 — Imagens multi-stage enxutas e sem privilégios de root
 - **Decisão:** backend e frontend usam build em dois estágios. O backend final contém só dependências de produção e o JS compilado, e roda como o usuário `node`. O frontend final é apenas nginx + arquivos estáticos (sem Node). `.dockerignore` evita copiar `node_modules`, `.env` e testes.
 - **Motivo:** menor superfície de ataque e imagens menores. `bcryptjs` (decisão 004) evitou a necessidade de compilar módulos nativos nas imagens Alpine.
+
+## 056 — CI no GitHub Actions: três jobs e execução em cadeia
+- **Decisão:** `.github/workflows/ci.yml` roda em todo push na `main` e em pull requests, com três jobs. **backend**: `npm ci`, tipos, build e 98 testes contra um PostgreSQL real como serviço do job. **frontend**: tipos, lint, `check:cores`, 30 testes e build. **e2e**: só roda se os dois anteriores passarem; sobe o sistema com `docker compose up --build --wait` e executa as suítes de navegador.
+- **Detalhes:** Node 22 (o mesmo das imagens Docker); cache de dependências do npm; `permissions: contents: read` (mínimo necessário); `concurrency` cancela a execução anterior da mesma branch; no E2E, em caso de falha publica os logs dos contêineres e sempre anexa as capturas de tela como artefato, e derruba a stack ao final.
+- **Motivo:** feedback rápido (os jobs baratos primeiro), e o E2E valida exatamente o que será entregue: as imagens Docker, o proxy e o banco inicializado pelos scripts SQL.
+
+## 057 — Testes E2E versionados, em navegador real, contra o sistema completo
+- **Decisão:** a pasta `e2e/` contém quatro suítes (autenticação, listagem, CRUD e dashboard; **81 verificações**) sobre um módulo compartilhado (`lib/harness.mjs`) que abre o Chrome via `puppeteer-core`, registra rede e console e oferece os gestos comuns. `run.sh` executa as suítes em sequência restaurando o banco entre elas com os **mesmos** `schema.sql` e `seed.sql` do sistema.
+- **Configuração por variáveis:** `APP_URL`, `API_URL`, `CHROME_PATH`, `DB_EXEC` e `SUITES` permitem rodar contra o ambiente de desenvolvimento (Vite + API) ou contra o Docker Compose, sem alterar código. Verificado nos dois modos, inclusive a partir de um clone limpo.
+- **Por que `puppeteer-core`:** usa o Chrome já instalado (não baixa um navegador), é leve e basta para os fluxos cobertos. Alternativas: Playwright (mais recursos, download de navegadores) e Cypress (mais pesado).
+- **Cobertura de comportamentos que testes unitários não alcançam:** redirecionamentos de login, persistência de sessão e tema, debounce de rede, estados de erro com a API derrubada, conflito de concorrência entre dois usuários, modal e toasts.
+- **Limitação:** testes de navegador são mais lentos (~1 min no total) e dependem de dados de demonstração conhecidos; por isso cada suíte parte do seed restaurado.
+
+## 058 — Como o CI foi validado sem executá-lo no GitHub
+- **Decisão:** o workflow passou pelo `actionlint` (sem erros) e cada job foi **simulado localmente** com os comandos exatos, num contêiner `node:22` a partir de uma cópia limpa do `HEAD` (`git archive`), com PostgreSQL como serviço. O job E2E foi executado com `docker compose up --wait` a partir de um clone limpo, inclusive com `CI=true` (que liga `--no-sandbox` no Chrome).
+- **Motivo:** descobrir antes do push diferenças de ambiente (versão do Node, repositório inteiro versus só uma pasta, portas ocupadas) em vez de depurar o CI por tentativa e erro.
+- **Porta 8080:** em máquinas onde ela já está em uso, o compose falha ao publicar o frontend; a variável `FRONTEND_PORT` (e `BACKEND_PORT`) resolve, e isso será explicado no README.

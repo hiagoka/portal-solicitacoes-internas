@@ -177,10 +177,10 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **12.8** Testar `docker compose up` a partir de um clone limpo
 
 ## Fase 13 — CI
-- [ ] **13.1** Criar o workflow `.github/workflows/ci.yml` (checkout, setup-node)
-- [ ] **13.2** Adicionar o job do backend (install, build, test com serviço Postgres)
-- [ ] **13.3** Adicionar o job do frontend (install, lint, build)
-- [ ] **13.4** Conferir o resultado verde no GitHub Actions
+- [x] **13.1** Criar o workflow `.github/workflows/ci.yml` (checkout, setup-node)
+- [x] **13.2** Adicionar o job do backend (install, build, test com serviço Postgres)
+- [x] **13.3** Adicionar o job do frontend (install, lint, build)
+- [ ] **13.4** Conferir o resultado verde no GitHub Actions *(aguardando o push)*
 
 ## Fase 14 — Responsividade e UX
 - [ ] **14.1** Adaptar o layout/menu para celular
