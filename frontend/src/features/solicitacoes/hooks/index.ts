@@ -1,5 +1,5 @@
 export { useAcoesDetalhes, useCriarSolicitacao, useEditarSolicitacao } from './useAcoesSolicitacao'
-export { useFiltrosSolicitacoes } from './useFiltrosSolicitacoes'
+export { OPCOES_POR_PAGINA, useFiltrosSolicitacoes } from './useFiltrosSolicitacoes'
 export { useFormularioSolicitacao } from './useFormularioSolicitacao'
 export { useSolicitacao } from './useSolicitacao'
 export { useSolicitacoes } from './useSolicitacoes'

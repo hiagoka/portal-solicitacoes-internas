@@ -27,4 +27,20 @@ export interface FiltrosSolicitacao {
   busca?: string
   de?: string // AAAA-MM-DD
   ate?: string // AAAA-MM-DD
+  pagina?: number
+  porPagina?: number
+}
+
+// Dados de navegação entre páginas, devolvidos junto com a lista.
+export interface Paginacao {
+  pagina: number
+  porPagina: number
+  /** Total de solicitações que atendem aos filtros (em todas as páginas). */
+  total: number
+  totalPaginas: number
+}
+
+export interface ListaPaginada {
+  solicitacoes: Solicitacao[]
+  paginacao: Paginacao
 }

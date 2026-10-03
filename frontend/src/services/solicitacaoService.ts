@@ -1,12 +1,11 @@
-import type { FiltrosSolicitacao, Solicitacao, SolicitacaoInput, Status } from '@/types'
+import type { FiltrosSolicitacao, ListaPaginada, Solicitacao, SolicitacaoInput, Status } from '@/types'
 import { http } from './httpClient'
 
 const BASE = '/solicitacoes'
 
 export const solicitacaoService = {
-  async listar(filtros: FiltrosSolicitacao = {}): Promise<Solicitacao[]> {
-    const { solicitacoes } = await http.get<{ solicitacoes: Solicitacao[] }>(BASE, { ...filtros })
-    return solicitacoes
+  listar(filtros: FiltrosSolicitacao = {}): Promise<ListaPaginada> {
+    return http.get<ListaPaginada>(BASE, { ...filtros })
   },
 
   async obter(id: number): Promise<Solicitacao> {
