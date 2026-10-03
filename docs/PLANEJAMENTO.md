@@ -124,8 +124,8 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 ## Fase 7 — Base do frontend
 - [x] **7.1** Criar o projeto em `frontend/` com Vite + React + TS
 - [ ] **7.2** Instalar react-router-dom e configurar as rotas
-- [ ] **7.3** Criar o cliente HTTP (`api/client.ts`) com cookies e tratamento de erros
-- [ ] **7.4** Criar os tipos compartilhados (Solicitacao, Usuario, Status, Categoria)
+- [x] **7.3** Criar o cliente HTTP (`services/httpClient.ts`) com cookies e tratamento de erros
+- [x] **7.4** Criar os tipos compartilhados (Solicitacao, Usuario, Status, Categoria) e as constantes
 - [x] **7.5** Criar estilos globais e tema centralizado claro/escuro (Tailwind lendo `styles/theme.ts`, `check:cores`, `useTheme`)
 - [ ] **7.6** Criar o layout base (cabeçalho, menu, área de conteúdo)
 
@@ -137,7 +137,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [ ] **8.5** Criar o botão de logout no cabeçalho
 
 ## Fase 9 — Listagem
-- [ ] **9.1** Criar `api/solicitacoes.ts` (funções de chamada à API)
+- [x] **9.1** Criar `services/solicitacaoService.ts` (funções de chamada à API)
 - [ ] **9.2** Criar a página de listagem com tabela (código, título, categoria, solicitante, data, status)
 - [ ] **9.3** Criar o componente `StatusBadge`
 - [ ] **9.4** Criar estados de carregando, vazio e erro
@@ -157,7 +157,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [ ] **10.8** Criar notificações de sucesso e erro (toast)
 
 ## Fase 11 — Dashboard
-- [ ] **11.1** Criar `api/dashboard.ts`
+- [x] **11.1** Criar `services/dashboardService.ts`
 - [ ] **11.2** Criar o componente `CardIndicador`
 - [ ] **11.3** Criar a página Dashboard com os 4 indicadores (total, abertas, em atendimento, concluídas)
 - [ ] **11.4** Criar estados de carregando e erro do dashboard

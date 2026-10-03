@@ -128,7 +128,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 028 — Testes derivados das regras de negócio, com datas relativas
 - **Decisão:** os testes cobrem a matriz de permissões (3 perfis × operações), transições de status, validações, escopo dos filtros e concorrência (duas alterações simultâneas). Datas esperadas são calculadas a partir de "hoje", no fuso de Brasília.
 - **Motivo:** o seed usa datas relativas a `NOW()`; valores fixos fariam os testes quebrarem com o passar dos dias.
-- **Fora do escopo:** o rate limit do login fica desativado em `NODE_ENV=test` e não tem teste automatizado; o frontend não tem testes nesta entrega.
+- **Fora do escopo:** o rate limit do login fica desativado em `NODE_ENV=test` e não tem teste automatizado. No frontend, os testes cobrem a camada de acesso à API e as constantes (decisão 034), não as telas.
 
 ## 029 — Frontend: React + Vite + TypeScript + Tailwind CSS
 - **Decisão:** SPA em React 19 com Vite e TypeScript, estilizada com Tailwind CSS v4.
@@ -145,3 +145,16 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 031 — Alternância de tema: classe `dark` no `<html>`, preferência salva
 - **Decisão:** o tema inicial vem da preferência salva em `localStorage` ou, na primeira visita, do sistema operacional (`prefers-color-scheme`). Um script inline no `index.html` aplica a classe antes da renderização; o hook `useTheme` alterna e salva.
 - **Motivo:** evita o "flash" de tema claro ao carregar e respeita a preferência do usuário, mantendo o botão de alternar funcional (que `prefers-color-scheme` sozinho não permitiria).
+
+## 032 — Frontend em camadas: services → hooks → pages, com constantes separadas
+- **Decisão:** só `services/` conhece URLs e `fetch`; hooks guardam estado (carregando, erro, dados); páginas apenas montam a tela. Textos de status/categorias e caminhos de rotas ficam em `constants/`, tipos do contrato em `types/`, e tudo é importado por `@/...` via `index.ts`.
+- **Motivo:** trocar a API, uma label ou uma rota é mudar um lugar; telas e hooks ficam testáveis sem rede. É a mesma ideia de camadas do backend.
+
+## 033 — `httpClient` único com `ApiError` tipado e sessão por cookie
+- **Decisão:** toda chamada passa por `http.get/post/put/patch/delete`, com `credentials: 'include'` (cookie httpOnly enviado automaticamente). Falhas viram `ApiError { status, message, detalhes }`; falha de rede vira `status 0`. Um 401 em rota protegida dispara um callback registrado pelo `AuthContext` para encerrar a sessão; 401 em `/auth/login` (senha errada) e `/auth/me` (ninguém logado) não disparam.
+- **Motivo:** o restante do código trata erros de um jeito só e a expiração de sessão leva ao login sem cada tela precisar tratar. Como o token está em cookie httpOnly, o JavaScript nunca o enxerga.
+- **Limitação:** as transições de status estão duplicadas em `STATUS_TRANSICOES` (só para exibir opções válidas); a API segue como autoridade e responde 409 se divergirem.
+
+## 034 — Testes do frontend limitados à camada de acesso e às constantes
+- **Decisão:** Vitest cobre o `httpClient` (query, JSON, 204, erros, rede, sessão expirada) e a consistência das constantes. Os serviços foram verificados uma vez contra a API real (script descartável, não versionado).
+- **Motivo:** é onde um erro de contrato ou de tratamento de falha afetaria todas as telas, com baixo custo. Testes de componentes ficam como melhoria futura.
