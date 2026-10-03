@@ -141,7 +141,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** todas as cores, fontes, raios e sombras vivem em `src/styles/theme.ts`, com duas paletas de mesmas chaves (`Palette` obriga o escuro a definir tudo que o claro define). `tailwind.config.ts` lê o arquivo e emite variáveis CSS em `:root` (claro) e `.dark` (escuro). Componentes usam só nomes semânticos (`bg-surface`, `text-textMuted`, `bg-status-aberto`).
 - **Motivo:** trocar a identidade visual é editar um arquivo; o modo escuro não exige `dark:` espalhado, pois a mesma classe aponta para uma variável que muda de valor.
 - **Garantias:** a paleta padrão do Tailwind foi removida (`--color-*: initial`), então `bg-blue-500` nem gera CSS; o script `npm run check:cores` falha se achar `#hex`, `rgb()` ou classes da paleta padrão fora do `theme.ts`. Contraste calculado: todos os pares texto/fundo atingem WCAG AA (≥ 4,5:1) nos dois temas.
-- **Limitação:** o fundo suave dos badges (cor a 10% de opacidade) reduz um pouco o contraste real em relação ao medido contra `surface`.
+- **Limitação encontrada e corrigida:** o fundo suave dos selos (cor a 10% de opacidade) reduzia o contraste real. A auditoria com axe-core mediu 4,39:1 no tema claro; os tons foram escurecidos e um teste unitário agora cobre esse caso (decisão 063).
 
 ## 031 — Alternância de tema: classe `dark` no `<html>`, preferência salva
 - **Decisão:** o tema inicial vem da preferência salva em `localStorage` ou, na primeira visita, do sistema operacional (`prefers-color-scheme`). Um script inline no `index.html` aplica a classe antes da renderização; o hook `useTheme` alterna e salva.
@@ -298,3 +298,25 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** rodapé com a faixa exibida ("Mostrando 6–10 de 10"), seletor de itens por página (5, 10, 20, 50) e botões Anterior/Próxima com a posição ("Página 2 de 3"). Mudar qualquer filtro **ou** o tamanho da página volta à página 1; a página anterior some enquanto a nova carrega (esmaecida, botões bloqueados).
 - **Rede de segurança:** se a página pedida não existir mais (outra pessoa excluiu itens entre o clique e a resposta), a tela avisa "Esta página não existe mais" e oferece "Ir para a última página", em vez de mostrar uma tabela vazia sem explicação. Pela interface esse caso é quase inalcançável (a API passa a informar menos páginas e o botão "Próxima" é desabilitado), então o teste E2E **simula** a resposta do servidor.
 - **Limitação:** a página e os filtros não ficam na URL (não sobrevivem ao recarregamento).
+
+## 062 — Responsividade: mobile primeiro, com tabela → cartões e filtros recolhíveis
+- **Decisão:** abaixo de 768 px a listagem vira uma lista de cartões (código e status no topo, título como link, categoria · solicitante · data); a partir de 768 px é a tabela. Em telas pequenas os filtros além da busca ficam recolhidos atrás de "Mais filtros" (com um contador de filtros ativos), e abrem sozinhos se houver erro no período. O cabeçalho passa a duas linhas (marca e ações em cima, navegação embaixo) e só o perfil do usuário aparece, não o nome. Botões de formulário ocupam a largura toda, e os alvos de toque têm ao menos 40 px.
+- **Como funciona:** só um dos dois formatos (tabela ou cartões) é exibido; o outro fica com `display:none`, o que também o retira da leitura de leitores de tela. A ordem visual do cabeçalho muda por CSS (`order`), enquanto no HTML a leitura continua marca → navegação → ações.
+- **Alternativas:** uma única tabela com rolagem horizontal (rejeitada: legibilidade ruim no celular) e uma biblioteca de componentes responsivos (peso desnecessário).
+- **Verificado em navegador real** nos viewports 360, 390 e 768 px: nenhuma tela com rolagem horizontal, fluxo completo (criar e excluir) no celular, modal cabendo na tela.
+
+## 063 — Acessibilidade medida, não presumida: axe-core em todas as telas e nos dois temas
+- **Decisão:** a suíte `acessibilidade` roda o axe-core (WCAG 2.0/2.1/2.2 A e AA mais boas práticas) em 14 telas e estados, em tema claro e escuro (27 auditorias), incluindo o modal aberto, formulário com erros e estados vazio/404.
+- **O que a primeira execução achou (16 passavam, 9 falhavam):** login sem região `<main>`; selos de status com contraste de 4,39:1 no tema claro; título `h3` logo após o `h1` (ordem de títulos); página 404 sem `h1`. Todos corrigidos; a suíte passou a 27/27.
+- **Contraste:** em vez de ajustar as cores "no olho", calculei o contraste de cada texto colorido sobre a sua tinta a 10% e escolhi os tons `#92400E` e `#166534` (5,6:1). Um teste unitário (`theme.test.ts`, 36 casos) garante ≥ 4,5:1 em todos os pares dos dois temas, para a regressão não voltar.
+- **Além do que o axe mede:** link "Pular para o conteúdo", foco movido para a área principal a cada troca de rota (numa aplicação de página única o navegador não faz isso), título da aba por página, anel de foco global e `aria-expanded` no painel de filtros.
+- **Limite honesto:** ferramentas automáticas pegam só parte dos problemas de acessibilidade (a ordem lógica de leitura, a clareza dos textos e o uso real com leitor de tela exigem teste humano). Não testei com VoiceOver/NVDA.
+
+## 064 — Conflito de classes do Tailwind sem `tailwind-merge`: modo `iconOnly` no Button
+- **Fato:** ao dar `px-0` a um botão que já tinha `px-4`, o CSS gerado aplica o `px-4` (a ordem das utilidades no arquivo decide, não a ordem no HTML), e o ícone de 20 px foi espremido para ~8 px. Nenhum teste automático (nem o axe) notou, pois o botão continuava acessível; só a inspeção do print revelou.
+- **Decisão:** em vez de sobrescrever espaçamento por `className`, o `Button` ganhou o modo `iconOnly` (quadrado, sem padding lateral). Um teste de E2E agora confere que o botão de tema mede 40×40 e o ícone 20 px.
+- **Lição:** `className` é bom para acrescentar, ruim para desfazer. Variações devem ser props do componente.
+
+## 065 — Testes de interface em três camadas
+- **Decisão:** a interface é coberta por (1) testes unitários de regras puras (permissões, validação, formatação, contraste da paleta, cliente HTTP: 67 testes); (2) testes de integração da API (116 testes) e (3) testes de ponta a ponta em navegador real (6 suítes, 156 verificações, rodando no CI contra o Docker Compose).
+- **Motivo:** cada camada pega uma classe de erro diferente e a mais barata é a que roda primeiro. Os erros de integração (corrida no redirecionamento do login, conflito de classes, datas dependentes de idioma) só apareceram na camada de navegador.

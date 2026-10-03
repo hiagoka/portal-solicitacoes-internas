@@ -183,11 +183,11 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **13.4** Conferir o resultado verde no GitHub Actions
 
 ## Fase 14 — Responsividade e UX
-- [ ] **14.1** Adaptar o layout/menu para celular
-- [ ] **14.2** Adaptar a tabela para telas pequenas (cards ou scroll horizontal)
-- [ ] **14.3** Adaptar os formulários e os filtros
-- [ ] **14.4** Revisar acessibilidade básica (labels, foco, contraste)
-- [ ] **14.5** Revisão de ponta a ponta de todos os fluxos com os 2 perfis
+- [x] **14.1** Adaptar o layout/menu para celular
+- [x] **14.2** Adaptar a tabela para telas pequenas (cards ou scroll horizontal)
+- [x] **14.3** Adaptar os formulários e os filtros
+- [x] **14.4** Revisar acessibilidade básica (labels, foco, contraste)
+- [x] **14.5** Revisão de ponta a ponta de todos os fluxos com os 2 perfis
 
 ---
 
