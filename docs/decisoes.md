@@ -129,3 +129,19 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** os testes cobrem a matriz de permissões (3 perfis × operações), transições de status, validações, escopo dos filtros e concorrência (duas alterações simultâneas). Datas esperadas são calculadas a partir de "hoje", no fuso de Brasília.
 - **Motivo:** o seed usa datas relativas a `NOW()`; valores fixos fariam os testes quebrarem com o passar dos dias.
 - **Fora do escopo:** o rate limit do login fica desativado em `NODE_ENV=test` e não tem teste automatizado; o frontend não tem testes nesta entrega.
+
+## 029 — Frontend: React + Vite + TypeScript + Tailwind CSS
+- **Decisão:** SPA em React 19 com Vite e TypeScript, estilizada com Tailwind CSS v4.
+- **Motivo:** Vite dá build e recarregamento rápidos; TypeScript compartilha o vocabulário de tipos com a API; Tailwind permite estilizar sem folhas de CSS paralelas e, combinado ao tema centralizado, mantém o visual consistente.
+- **Revisão:** o planejamento inicial previa CSS próprio. Mudou para Tailwind por pedido do projeto, que exige um tema único lido pelo framework.
+- **Alternativas:** CSS Modules / CSS próprio (mais código repetido para variações de componentes); bibliotecas de UI como MUI (visual pronto, mas esconde as decisões de design e pesa no bundle); Next.js (SSR desnecessário para um portal interno autenticado).
+
+## 030 — Tema centralizado em `styles/theme.ts`, claro e escuro
+- **Decisão:** todas as cores, fontes, raios e sombras vivem em `src/styles/theme.ts`, com duas paletas de mesmas chaves (`Palette` obriga o escuro a definir tudo que o claro define). `tailwind.config.ts` lê o arquivo e emite variáveis CSS em `:root` (claro) e `.dark` (escuro). Componentes usam só nomes semânticos (`bg-surface`, `text-textMuted`, `bg-status-aberto`).
+- **Motivo:** trocar a identidade visual é editar um arquivo; o modo escuro não exige `dark:` espalhado, pois a mesma classe aponta para uma variável que muda de valor.
+- **Garantias:** a paleta padrão do Tailwind foi removida (`--color-*: initial`), então `bg-blue-500` nem gera CSS; o script `npm run check:cores` falha se achar `#hex`, `rgb()` ou classes da paleta padrão fora do `theme.ts`. Contraste calculado: todos os pares texto/fundo atingem WCAG AA (≥ 4,5:1) nos dois temas.
+- **Limitação:** o fundo suave dos badges (cor a 10% de opacidade) reduz um pouco o contraste real em relação ao medido contra `surface`.
+
+## 031 — Alternância de tema: classe `dark` no `<html>`, preferência salva
+- **Decisão:** o tema inicial vem da preferência salva em `localStorage` ou, na primeira visita, do sistema operacional (`prefers-color-scheme`). Um script inline no `index.html` aplica a classe antes da renderização; o hook `useTheme` alterna e salva.
+- **Motivo:** evita o "flash" de tema claro ao carregar e respeita a preferência do usuário, mantendo o botão de alternar funcional (que `prefers-color-scheme` sozinho não permitiria).

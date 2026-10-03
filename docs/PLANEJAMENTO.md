@@ -9,7 +9,7 @@ Regra: uma tarefa = um resultado verificável = (idealmente) um commit.
 |---|---|
 | Backend | Node.js + TypeScript + Express |
 | Banco | PostgreSQL, SQL direto (driver `pg`, sem ORM) |
-| Frontend | React + Vite + TypeScript |
+| Frontend | React + Vite + TypeScript + Tailwind CSS (tema claro/escuro) |
 | Autenticação | bcrypt + JWT em cookie httpOnly |
 | Perfis | `solicitante` (só as suas) e `atendente` (todas, altera status) |
 | Diferenciais | Docker Compose, testes automatizados, CI, responsividade |
@@ -122,11 +122,11 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 # DIA 3 — Sáb 03/10: Frontend
 
 ## Fase 7 — Base do frontend
-- [ ] **7.1** Criar o projeto em `frontend/` com Vite + React + TS
+- [x] **7.1** Criar o projeto em `frontend/` com Vite + React + TS
 - [ ] **7.2** Instalar react-router-dom e configurar as rotas
 - [ ] **7.3** Criar o cliente HTTP (`api/client.ts`) com cookies e tratamento de erros
 - [ ] **7.4** Criar os tipos compartilhados (Solicitacao, Usuario, Status, Categoria)
-- [ ] **7.5** Criar estilos globais e variáveis de tema (CSS)
+- [x] **7.5** Criar estilos globais e tema centralizado claro/escuro (Tailwind lendo `styles/theme.ts`, `check:cores`, `useTheme`)
 - [ ] **7.6** Criar o layout base (cabeçalho, menu, área de conteúdo)
 
 ## Fase 8 — Autenticação no frontend
