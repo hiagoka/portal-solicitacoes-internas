@@ -79,20 +79,20 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **3.9** Adicionar rate limit no login (segurança básica)
 
 ## Fase 4 — CRUD de solicitações
-- [ ] **4.1** Criar tipos e schemas zod (criar, editar)
-- [ ] **4.2** Criar `solicitacaoRepository.inserir`
-- [ ] **4.3** Criar `solicitacaoService.criar` (status aberto e usuário vêm do servidor, nunca do cliente)
-- [ ] **4.4** Criar `POST /solicitacoes`
-- [ ] **4.5** Criar `solicitacaoRepository.buscarPorId` (com JOIN para o nome do solicitante)
-- [ ] **4.6** Criar `GET /solicitacoes/:id` (solicitante só vê a sua; atendente vê qualquer uma)
-- [ ] **4.7** Criar `solicitacaoRepository.listar` (sem filtros, com JOIN do solicitante)
-- [ ] **4.8** Criar `GET /solicitacoes` (solicitante vê só as suas; atendente vê todas)
-- [ ] **4.9** Criar `solicitacaoRepository.atualizar`
-- [ ] **4.10** Criar `solicitacaoService.editar` (só aberta e só do autor, senão 403/409)
-- [ ] **4.11** Criar `PUT /solicitacoes/:id`
-- [ ] **4.12** Criar `solicitacaoRepository.excluir`
-- [ ] **4.13** Criar `solicitacaoService.excluir` (mesmas regras da edição)
-- [ ] **4.14** Criar `DELETE /solicitacoes/:id`
+- [x] **4.1** Criar tipos e schemas zod (criar, editar)
+- [x] **4.2** Criar `solicitacaoRepository.inserir`
+- [x] **4.3** Criar `solicitacaoService.criar` (status aberto e usuário vêm do servidor, nunca do cliente)
+- [x] **4.4** Criar `POST /solicitacoes`
+- [x] **4.5** Criar `solicitacaoRepository.buscarPorId` (com JOIN para o nome do solicitante)
+- [x] **4.6** Criar `GET /solicitacoes/:id` (solicitante só vê a sua; atendente vê qualquer uma)
+- [x] **4.7** Criar `solicitacaoRepository.listar` (sem filtros, com JOIN do solicitante)
+- [x] **4.8** Criar `GET /solicitacoes` (solicitante vê só as suas; atendente vê todas)
+- [x] **4.9** Criar `solicitacaoRepository.atualizar`
+- [x] **4.10** Criar `solicitacaoService.editar` (só aberta e só do autor, senão 403/409)
+- [x] **4.11** Criar `PUT /solicitacoes/:id`
+- [x] **4.12** Criar `solicitacaoRepository.excluir`
+- [x] **4.13** Criar `solicitacaoService.excluir` (mesmas regras da edição)
+- [x] **4.14** Criar `DELETE /solicitacoes/:id`
 
 ## Fase 5 — Filtros, status e dashboard
 - [ ] **5.1** Filtro por status na listagem

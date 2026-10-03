@@ -65,3 +65,24 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 014 — Autorização por perfil em middleware reutilizável
 - **Decisão:** `exigirPerfil('atendente')` protege rotas por perfil; as regras que dependem do dado (ex.: "só o autor edita") ficam no service.
 - **Motivo:** separa "quem pode usar esta rota" (middleware, declarativo) de "quem pode agir sobre este registro" (regra de negócio).
+
+## 015 — 404 (e não 403) quando o solicitante acessa solicitação de outra pessoa
+- **Decisão:** ao consultar, editar ou excluir uma solicitação que não é sua, o solicitante recebe `404 Solicitação não encontrada`.
+- **Motivo:** responder 403 confirmaria que aquele código existe. Com 404, não há como descobrir códigos alheios por tentativa.
+- **Códigos usados:** 404 (inexistente ou não visível), 403 (visível mas sem permissão, ex.: atendente tentando editar), 409 (conflito de estado: não está mais aberta).
+
+## 016 — Condição de estado dentro do próprio UPDATE/DELETE
+- **Decisão:** o repositório executa `UPDATE ... WHERE id = $1 AND status = 'aberto'` (idem no DELETE) e informa se alguma linha foi afetada.
+- **Motivo:** o service verifica as regras antes, mas entre a verificação e a gravação o atendente pode mudar o status. Com a condição na própria query a regra é aplicada de forma atômica pelo banco, evitando condição de corrida.
+
+## 017 — Campos controlados pelo servidor
+- **Decisão:** o schema de criação/edição aceita apenas `titulo`, `descricao` e `categoria`. Status inicial e data vêm dos DEFAULTs do banco; o solicitante vem do usuário logado.
+- **Motivo:** impedir que o cliente forje dados (ex.: criar já "concluído" ou em nome de outro usuário). Campos extras enviados são descartados pelo zod.
+
+## 018 — API em camelCase, banco em snake_case
+- **Decisão:** o repositório converte as linhas do banco (`criado_em`) para o formato da API (`criadoEm`) e aninha o solicitante (`solicitante: { id, nome }`).
+- **Motivo:** convenção de cada lado (SQL vs. JavaScript), com a tradução concentrada em um único ponto.
+
+## 019 — Mensagens de validação em português
+- **Decisão:** `z.config(z.locales.pt())` na inicialização, mais mensagens customizadas nos campos de negócio.
+- **Motivo:** a interface é em português; o frontend pode exibir `detalhes[].mensagem` diretamente.
