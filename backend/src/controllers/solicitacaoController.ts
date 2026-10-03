@@ -18,8 +18,7 @@ export const solicitacaoController = {
 
   async listar(req: Request, res: Response) {
     const filtros = res.locals.query as FiltrosSolicitacao;
-    const solicitacoes = await solicitacaoService.listar(req.usuario!, filtros);
-    res.json({ solicitacoes });
+    res.json(await solicitacaoService.listar(req.usuario!, filtros));
   },
 
   async editar(req: Request, res: Response) {

@@ -56,7 +56,7 @@ export const solicitacaoRepository = {
 
   // Monta o WHERE dinamicamente, mas só com condições fixas no código; os VALORES sempre vão
   // em parâmetros ($1, $2...). Assim a combinação de filtros é segura contra SQL injection.
-  async listar(filtros: FiltrosListagem = {}): Promise<Solicitacao[]> {
+  async listar(filtros: FiltrosListagem): Promise<{ itens: Solicitacao[]; total: number }> {
     const condicoes: string[] = [];
     const params: unknown[] = [];
     const adicionar = (condicao: string, valor: unknown) => {
@@ -76,8 +76,18 @@ export const solicitacaoRepository = {
     if (filtros.ate) adicionar(`(s.criado_em AT TIME ZONE 'America/Sao_Paulo')::date <= ?::date`, filtros.ate);
 
     const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
-    const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC`, params);
-    return rows.map(paraSolicitacao);
+
+    // A página e o total usam o MESMO filtro. A ordem (data e depois código) é estável, então
+    // nenhum item se repete nem se perde ao mudar de página.
+    const { pagina, porPagina } = filtros;
+    const [itens, contagem] = await Promise.all([
+      query<SolicitacaoRow>(
+        `${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, porPagina, (pagina - 1) * porPagina],
+      ),
+      query<{ total: number }>(`SELECT COUNT(*)::int AS total FROM solicitacoes s ${where}`, params),
+    ]);
+    return { itens: itens.rows.map(paraSolicitacao), total: contagem.rows[0].total };
   },
 
   // A condição `status = 'aberto'` no próprio UPDATE evita condição de corrida: se alguém mudou o status

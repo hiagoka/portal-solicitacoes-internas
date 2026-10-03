@@ -1,7 +1,7 @@
 import { AppError } from '../middlewares/AppError';
 import { solicitacaoRepository } from '../repositories/solicitacaoRepository';
 import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
-import { TRANSICOES, type Solicitacao, type Status } from '../types/solicitacao';
+import { TRANSICOES, type Paginacao, type Solicitacao, type Status } from '../types/solicitacao';
 import type { UsuarioPublico } from '../types/usuario';
 
 export const solicitacaoService = {
@@ -20,10 +20,19 @@ export const solicitacaoService = {
     return solicitacao;
   },
 
-  // Atendente lista todas; solicitante apenas as próprias.
-  async listar(usuario: UsuarioPublico, filtros: FiltrosSolicitacao): Promise<Solicitacao[]> {
+  // Atendente lista todas; solicitante apenas as próprias. Devolve uma página e os dados para navegar entre elas.
+  async listar(usuario: UsuarioPublico, filtros: FiltrosSolicitacao): Promise<{ solicitacoes: Solicitacao[]; paginacao: Paginacao }> {
     const usuarioId = usuario.perfil === 'atendente' ? undefined : usuario.id;
-    return solicitacaoRepository.listar({ ...filtros, usuarioId });
+    const { itens, total } = await solicitacaoRepository.listar({ ...filtros, usuarioId });
+    return {
+      solicitacoes: itens,
+      paginacao: {
+        pagina: filtros.pagina,
+        porPagina: filtros.porPagina,
+        total,
+        totalPaginas: Math.max(1, Math.ceil(total / filtros.porPagina)),
+      },
+    };
   },
 
   // Regras de edição e exclusão: só o autor, e só enquanto a solicitação estiver aberta.
