@@ -169,3 +169,18 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** `Modal` usa `<dialog>` + `showModal()`, que entrega foco preso, fechamento com Esc e bloqueio do restante da página sem código extra. Notificações usam um `ToastProvider` (contexto) e o hook `useToast()`, com remoção automática em 5 s.
 - **Limitação conhecida:** o `<dialog>` fica na camada superior do navegador, acima dos toasts. Convenção do projeto: fechar o modal antes de notificar.
 - **Alternativas:** biblioteca de modal (Radix, Headless UI), mais completa porém uma dependência a mais; gerenciar foco e Esc manualmente (propenso a erro).
+
+## 037 — Autenticação no frontend: contexto + cookie, sessão verificada no carregamento
+- **Decisão:** `AuthProvider` guarda o usuário logado em memória. Ao abrir ou recarregar a página, consulta `GET /auth/me` para saber se o cookie ainda representa uma sessão válida (enquanto isso, `ProtectedRoute` mostra um spinner em vez de piscar a tela de login). `ProtectedRoute` envolve todas as telas autenticadas; qualquer 401 em rota protegida derruba o usuário ao login (callback do `httpClient`).
+- **Motivo:** o token fica num cookie httpOnly, inacessível ao JavaScript, então o front não "sabe" se há sessão sem perguntar à API. Guardar só os dados do usuário (e nunca o token) elimina o risco de vazamento por XSS.
+- **Alternativas:** token em `localStorage` (legível por qualquer script da página); Redux/Zustand para o estado de sessão (peso desnecessário para um único valor).
+
+## 038 — Roteamento com React Router e destino pós-login compartilhado
+- **Decisão:** React Router v8 com rotas aninhadas (`ProtectedRoute` → `AppLayout` → páginas). Ao ser mandado ao login, o usuário leva em `location.state.from` a página pedida e volta para ela após entrar. O cálculo do destino fica num hook (`useDestinoPosLogin`) usado pelo formulário **e** pela página de login.
+- **Por que um hook compartilhado:** o teste de ponta a ponta revelou uma corrida: ao concluir o login, o `LoginPage` (que redireciona quem já está logado) disparava `Navigate` para o dashboard antes do `navigate(destino)` do formulário, e a página pedida se perdia. Com os dois lendo o mesmo destino, o resultado é o mesmo qualquer que seja o primeiro a agir.
+- **Pendência:** o link "Solicitações" do cabeçalho leva a "Página não encontrada" até a fase da listagem.
+
+## 039 — Verificação do fluxo de autenticação com navegador real
+- **Decisão:** o fluxo foi validado com um script `puppeteer-core` (descartável, fora do repositório) dirigindo o Chrome contra o backend e o frontend reais: 17 verificações (rota protegida, validação, senha errada, login, persistência após recarregar, `/login` estando logado, rota 404, alternância e persistência do tema, logout, deep link, perfil do atendente, ausência de erros no console).
+- **Motivo:** testes unitários não pegariam problemas de integração como a corrida da decisão 038.
+- **Limitação:** o script não está versionado; transformá-lo em suíte E2E do projeto é uma melhoria futura.

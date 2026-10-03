@@ -123,18 +123,18 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 
 ## Fase 7 — Base do frontend
 - [x] **7.1** Criar o projeto em `frontend/` com Vite + React + TS
-- [ ] **7.2** Instalar react-router-dom e configurar as rotas
+- [x] **7.2** Instalar react-router-dom e configurar as rotas
 - [x] **7.3** Criar o cliente HTTP (`services/httpClient.ts`) com cookies e tratamento de erros
 - [x] **7.4** Criar os tipos compartilhados (Solicitacao, Usuario, Status, Categoria) e as constantes
 - [x] **7.5** Criar estilos globais e tema centralizado claro/escuro (Tailwind lendo `styles/theme.ts`, `check:cores`, `useTheme`)
-- [ ] **7.6** Criar o layout base (cabeçalho, menu, área de conteúdo)
+- [x] **7.6** Criar o layout base (cabeçalho, menu, área de conteúdo)
 
 ## Fase 8 — Autenticação no frontend
-- [ ] **8.1** Criar o `AuthContext` (usuário atual, login, logout, carregamento inicial via `/auth/me`)
-- [ ] **8.2** Criar a página de Login (formulário)
-- [ ] **8.3** Exibir erros de login (credenciais inválidas)
-- [ ] **8.4** Criar a rota protegida (redireciona ao login se não autenticado)
-- [ ] **8.5** Criar o botão de logout no cabeçalho
+- [x] **8.1** Criar o `AuthContext` (usuário atual, login, logout, carregamento inicial via `/auth/me`)
+- [x] **8.2** Criar a página de Login (formulário)
+- [x] **8.3** Exibir erros de login (credenciais inválidas)
+- [x] **8.4** Criar a rota protegida (redireciona ao login se não autenticado)
+- [x] **8.5** Criar o botão de logout no cabeçalho
 
 ## Fase 9 — Listagem
 - [x] **9.1** Criar `services/solicitacaoService.ts` (funções de chamada à API)
