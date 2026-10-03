@@ -140,7 +140,8 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   // Verdadeiro se a página cabe na largura da janela (sem barra de rolagem horizontal).
   const semRolagemHorizontal = () =>
     pagina.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
-  const foto = (arquivo) => pagina.screenshot({ path: `${SAIDA}/${nomeDaSuite}-${arquivo}.png` })
+  // Sem nome de suíte, o arquivo fica só com o nome dado (usado pelo gerador de prints da documentação).
+  const foto = (arquivo, opcoes = {}) => pagina.screenshot({ path: `${SAIDA}/${nomeDaSuite ? `${nomeDaSuite}-` : ''}${arquivo}.png`, ...opcoes })
 
   // Chama a API direto (sem navegador), autenticando como um dos usuários do seed. Serve para
   // provocar mudanças "por fora" (ex.: o atendente assume uma solicitação enquanto outra pessoa a vê).

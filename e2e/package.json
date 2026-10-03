@@ -5,7 +5,8 @@
   "description": "Testes de ponta a ponta (navegador real) do Portal de Solicitações",
   "type": "module",
   "scripts": {
-    "test": "bash run.sh"
+    "test": "bash run.sh",
+    "prints": "node prints.mjs"
   },
   "dependencies": {
     "axe-core": "^4.13.0",
