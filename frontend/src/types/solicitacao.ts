@@ -1,0 +1,30 @@
+export type Status = 'aberto' | 'em_atendimento' | 'concluido'
+export type Categoria = 'TI' | 'RH' | 'Compras' | 'Financeiro' | 'Infraestrutura'
+
+// Como a API devolve uma solicitação. As datas chegam como texto ISO 8601.
+export interface Solicitacao {
+  id: number
+  titulo: string
+  descricao: string
+  categoria: Categoria
+  status: Status
+  criadoEm: string
+  atualizadoEm: string
+  solicitante: { id: number; nome: string }
+}
+
+// Dados enviados ao criar/editar. Status, data e solicitante são definidos pelo servidor.
+export interface SolicitacaoInput {
+  titulo: string
+  descricao: string
+  categoria: Categoria
+}
+
+// Filtros da listagem. Campo ausente ou vazio = "não filtrar".
+export interface FiltrosSolicitacao {
+  status?: Status | ''
+  categoria?: Categoria | ''
+  busca?: string
+  de?: string // AAAA-MM-DD
+  ate?: string // AAAA-MM-DD
+}
