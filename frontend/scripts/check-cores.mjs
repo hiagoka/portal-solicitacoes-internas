@@ -31,8 +31,9 @@ const problemas = []
 
 for (const arquivo of alvos) {
   const rel = relative(RAIZ, arquivo)
-  if (rel === PERMITIDO) continue
+  if (rel === PERMITIDO || /\.test\.tsx?$/.test(rel)) continue // o tema e os testes não estilizam nada
   readFileSync(arquivo, 'utf8').split('\n').forEach((linha, i) => {
+    if (/^\s*(\/\/|\/\*|\*)/.test(linha)) return // comentários (ex.: "#0007" em exemplos de código)
     for (const { nome, regex } of REGRAS) {
       for (const m of linha.matchAll(regex)) problemas.push(`${rel}:${i + 1}  ${nome}: ${m[0]}`)
     }
