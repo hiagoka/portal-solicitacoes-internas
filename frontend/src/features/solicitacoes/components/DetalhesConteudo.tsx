@@ -44,14 +44,17 @@ export function DetalhesConteudo({ solicitacao, aoAtualizar, recarregar }: Detal
         <StatusSelect statusAtual={solicitacao.status} alterando={alterandoStatus} onAlterar={mudarStatus} />
       )}
 
-      <ExcluirModal
-        open={confirmandoExclusao}
-        codigo={solicitacao.id}
-        titulo={solicitacao.titulo}
-        excluindo={excluindo}
-        onConfirmar={() => void excluir(() => setConfirmandoExclusao(false))}
-        onCancelar={() => setConfirmandoExclusao(false)}
-      />
+      {/* Só existe no HTML para quem pode excluir; os demais nem recebem o diálogo. */}
+      {editavel && (
+        <ExcluirModal
+          open={confirmandoExclusao}
+          codigo={solicitacao.id}
+          titulo={solicitacao.titulo}
+          excluindo={excluindo}
+          onConfirmar={() => void excluir(() => setConfirmandoExclusao(false))}
+          onCancelar={() => setConfirmandoExclusao(false)}
+        />
+      )}
     </div>
   )
 }
