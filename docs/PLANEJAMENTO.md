@@ -158,9 +158,9 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 
 ## Fase 11 — Dashboard
 - [x] **11.1** Criar `services/dashboardService.ts`
-- [ ] **11.2** Criar o componente `CardIndicador`
-- [ ] **11.3** Criar a página Dashboard com os 4 indicadores (total, abertas, em atendimento, concluídas)
-- [ ] **11.4** Criar estados de carregando e erro do dashboard
+- [x] **11.2** Criar o componente `CardIndicador`
+- [x] **11.3** Criar a página Dashboard com os 4 indicadores (total, abertas, em atendimento, concluídas)
+- [x] **11.4** Criar estados de carregando e erro do dashboard
 
 ---
 

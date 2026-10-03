@@ -61,6 +61,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** máximo de 10 tentativas por IP a cada 15 minutos em `POST /auth/login`; excedido, responde 429 no formato padrão de erro.
 - **Motivo:** dificulta ataque de força bruta, com custo mínimo de implementação. Desativado em `NODE_ENV=test` para não interferir nos testes.
 - **Limitação:** contador em memória, não compartilhado entre instâncias. Em produção com várias réplicas, usar um armazenamento compartilhado (ex.: Redis).
+- **Revisão:** a versão inicial contava também os logins bem-sucedidos; corrigido na decisão 051.
 
 ## 014 — Autorização por perfil em middleware reutilizável
 - **Decisão:** `exigirPerfil('atendente')` protege rotas por perfil; as regras que dependem do dado (ex.: "só o autor edita") ficam no service.
@@ -221,3 +222,22 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 047 — `LinkButton`: navegação com aparência de botão sem aninhar elementos interativos
 - **Decisão:** componente `LinkButton` (renderiza `<a>`) compartilha o visual com `Button` via `buttonStyles.ts`. Substituiu `<Link><Button/></Link>`, que aninha um botão dentro de um link (HTML inválido e problemático para teclado e leitores de tela).
 - **Motivo:** corrigir um erro de acessibilidade que eu mesmo havia introduzido na listagem, sem duplicar as classes de estilo.
+
+## 048 — Hook genérico `useConsulta` para telas de leitura
+- **Decisão:** a lógica de busca (chave da consulta, resultado marcado com a chave, `carregando`/`erro` derivados, descarte de respostas obsoletas, `recarregar`, `substituir`) foi extraída para `hooks/useConsulta.ts`. `useSolicitacoes`, `useSolicitacao` e `useDashboard` viraram wrappers de poucas linhas.
+- **Motivo:** o padrão já existia em dois hooks e o dashboard seria o terceiro; centralizar elimina duplicação e deixa o tratamento de corridas num único lugar. A refatoração foi feita com as suítes de ponta a ponta já existentes como rede de segurança: nenhuma regressão (auth 17/17, listagem 19/19, CRUD 29/29).
+- **Opções:** `manterAnterior` (lista esmaecida em vez de piscar) e `mensagemErro` para falhas que não vêm da API.
+
+## 049 — Dashboard: cartões, barra de distribuição e acessibilidade
+- **Decisão:** quatro cartões (total, abertas, em atendimento, concluídas) e uma barra empilhada com a proporção de cada status. Os números vêm de uma única chamada a `GET /dashboard`, já filtrada por perfil pela API (solicitante vê só os seus; atendente vê o global).
+- **Acessibilidade:** a informação não depende só de cor — a legenda traz nome, quantidade e porcentagem, e a barra tem `role="img"` com descrição textual para leitores de tela. As cores vêm dos mesmos tokens do tema (`bg-status-*`), já validados quanto a contraste.
+- **Estados:** carregando, erro com "Tentar novamente" e, quando não há nenhuma solicitação, uma mensagem no lugar da barra (que ficaria sem significado).
+
+## 050 — Sair voluntariamente não guarda a tela anterior
+- **Decisão:** o `AuthProvider` expõe `saiuVoluntariamente`. O `ProtectedRoute` só guarda a página de origem (`from`) quando o motivo do redirecionamento é um link aberto sem login ou uma sessão expirada; depois de um clique em "Sair" o próximo login cai no dashboard.
+- **Como foi descoberto:** o teste de ponta a ponta mostrou que, ao sair em `/solicitacoes` e entrar como outro usuário, o login levava de volta a `/solicitacoes`. Pior seria sair em `/solicitacoes/4` e o próximo usuário cair numa página de contexto alheio. A API já impediria o acesso indevido, mas a experiência estava errada.
+
+## 051 — Rate limit do login conta apenas tentativas falhas
+- **Decisão:** `skipSuccessfulRequests: true` no limitador de `POST /auth/login`.
+- **Motivo:** o limite (10 por IP a cada 15 min) contava também os logins corretos. Num escritório, onde muitos colaboradores saem do mesmo IP, 10 pessoas entrando normalmente bloqueariam todas as outras. O alvo da proteção é a adivinhação de senha, que se manifesta em falhas.
+- **Verificado manualmente:** 12 logins corretos seguidos passam; na 11ª senha errada a API responde 429. O comportamento ainda não tem teste automatizado, pois o limitador é desligado em `NODE_ENV=test`.
