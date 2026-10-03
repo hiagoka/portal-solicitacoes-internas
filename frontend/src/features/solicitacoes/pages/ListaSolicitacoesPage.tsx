@@ -1,5 +1,4 @@
-import { Link } from 'react-router'
-import { Button, Card, EmptyState, Spinner } from '@/components/ui'
+import { Button, Card, EmptyState, LinkButton, Spinner } from '@/components/ui'
 import { ROTAS } from '@/constants'
 import { useAuth } from '@/hooks'
 import { FiltrosBar } from '../components/FiltrosBar'
@@ -13,11 +12,7 @@ export function ListaSolicitacoesPage() {
   const { solicitacoes, carregando, erro, recarregar } = useSolicitacoes(aplicados)
 
   const titulo = usuario?.perfil === 'atendente' ? 'Todas as solicitações' : 'Minhas solicitações'
-  const botaoNova = (
-    <Link to={ROTAS.novaSolicitacao}>
-      <Button>Nova solicitação</Button>
-    </Link>
-  )
+  const botaoNova = <LinkButton to={ROTAS.novaSolicitacao}>Nova solicitação</LinkButton>
 
   function conteudo() {
     if (erro) {
