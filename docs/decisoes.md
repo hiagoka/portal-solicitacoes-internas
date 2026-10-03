@@ -158,3 +158,14 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 034 — Testes do frontend limitados à camada de acesso e às constantes
 - **Decisão:** Vitest cobre o `httpClient` (query, JSON, 204, erros, rede, sessão expirada) e a consistência das constantes. Os serviços foram verificados uma vez contra a API real (script descartável, não versionado).
 - **Motivo:** é onde um erro de contrato ou de tratamento de falha afetaria todas as telas, com baixo custo. Testes de componentes ficam como melhoria futura.
+
+## 035 — Biblioteca de componentes própria em `components/ui`
+- **Decisão:** 10 componentes genéricos (Button, Input, Select, Textarea, Badge, Modal, Card, Spinner, EmptyState, Toast) escritos à mão, com variantes por props (`variant`, `size`, `tone`, `padding`), tipos derivados dos elementos HTML (`ComponentPropsWithoutRef`) e no máximo ~65 linhas cada. Cores só pelos nomes do tema.
+- **Motivo:** evita depender de uma biblioteca de UI para um conjunto pequeno de peças, mantém o bundle leve e deixa cada decisão de design explicável. Input, Select e Textarea compartilham `FormField` (rótulo, erro, dica) e `fieldStyles`, então ficam idênticos.
+- **Acessibilidade:** rótulos ligados por `htmlFor`/`useId`, `aria-invalid` e `aria-describedby` nos erros, `role="alert"` para erros, `aria-busy` e rótulo oculto no spinner, `aria-label` nos botões de fechar, anel de foco visível.
+- **Verificação:** os componentes foram renderizados em uma galeria temporária (não versionada) nos temas claro e escuro, incluindo modal e toasts.
+
+## 036 — Modal sobre `<dialog>` nativo; Toast com provider
+- **Decisão:** `Modal` usa `<dialog>` + `showModal()`, que entrega foco preso, fechamento com Esc e bloqueio do restante da página sem código extra. Notificações usam um `ToastProvider` (contexto) e o hook `useToast()`, com remoção automática em 5 s.
+- **Limitação conhecida:** o `<dialog>` fica na camada superior do navegador, acima dos toasts. Convenção do projeto: fechar o modal antes de notificar.
+- **Alternativas:** biblioteca de modal (Radix, Headless UI), mais completa porém uma dependência a mais; gerenciar foco e Esc manualmente (propenso a erro).

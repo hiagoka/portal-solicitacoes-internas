@@ -19,6 +19,8 @@ const LARGURAS = {
 
 // Usa o elemento nativo <dialog>: o navegador cuida de prender o foco dentro do modal, de fechar com Esc
 // e de bloquear o resto da página, comportamentos difíceis de acertar manualmente.
+// Atenção: o <dialog> fica na camada superior do navegador, acima até dos toasts. Feche o modal ANTES de
+// chamar toast.sucesso/erro, senão a notificação aparece escurecida atrás do fundo.
 export function Modal({ open, onClose, title, size = 'md', footer, children }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const tituloId = useId()
