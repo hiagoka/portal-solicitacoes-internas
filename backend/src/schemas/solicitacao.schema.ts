@@ -38,3 +38,9 @@ export const filtrosSchema = z
   .refine((f) => !f.de || !f.ate || f.de <= f.ate, { message: 'A data inicial não pode ser maior que a final', path: ['de'] });
 
 export type FiltrosSolicitacao = z.infer<typeof filtrosSchema>;
+
+export const alterarStatusSchema = z.object({
+  status: z.enum(STATUS, { error: `Status inválido. Use: ${STATUS.join(', ')}` }),
+});
+
+export type AlterarStatusInput = z.infer<typeof alterarStatusSchema>;

@@ -1,7 +1,7 @@
 import { AppError } from '../middlewares/AppError';
 import { solicitacaoRepository } from '../repositories/solicitacaoRepository';
 import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
-import type { Solicitacao } from '../types/solicitacao';
+import { TRANSICOES, type Solicitacao, type Status } from '../types/solicitacao';
 import type { UsuarioPublico } from '../types/usuario';
 
 export const solicitacaoService = {
@@ -45,5 +45,17 @@ export const solicitacaoService = {
     await this.garantirEditavel(usuario, id);
     const excluiu = await solicitacaoRepository.excluir(id);
     if (!excluiu) throw AppError.conflict('A solicitação deixou de estar aberta');
+  },
+
+  // A autorização (só atendente) é feita na rota; aqui ficam as regras de transição.
+  async alterarStatus(usuario: UsuarioPublico, id: number, novo: Status): Promise<Solicitacao> {
+    const solicitacao = await this.obter(usuario, id);
+    if (solicitacao.status === novo) throw AppError.conflict('A solicitação já está com este status');
+    if (!TRANSICOES[solicitacao.status].includes(novo)) {
+      throw AppError.conflict(`Não é possível mudar de "${solicitacao.status}" para "${novo}"`);
+    }
+    const alterou = await solicitacaoRepository.atualizarStatus(id, solicitacao.status, novo);
+    if (!alterou) throw AppError.conflict('O status foi alterado por outra pessoa. Atualize a página e tente novamente');
+    return this.obter(usuario, id);
   },
 };

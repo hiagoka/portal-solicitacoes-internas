@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { solicitacaoService } from '../services/solicitacaoService';
-import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
+import type { AlterarStatusInput, FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
 
 // Depois do middleware `autenticar`, req.usuario sempre existe.
 export const solicitacaoController = {
@@ -33,5 +33,12 @@ export const solicitacaoController = {
     const { id } = res.locals.params as { id: number };
     await solicitacaoService.excluir(req.usuario!, id);
     res.status(204).end();
+  },
+
+  async alterarStatus(req: Request, res: Response) {
+    const { id } = res.locals.params as { id: number };
+    const { status } = res.locals.body as AlterarStatusInput;
+    const solicitacao = await solicitacaoService.alterarStatus(req.usuario!, id, status);
+    res.json({ solicitacao });
   },
 };

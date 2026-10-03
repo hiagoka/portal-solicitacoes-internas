@@ -15,3 +15,10 @@ export interface Solicitacao {
   atualizadoEm: Date;
   solicitante: { id: number; nome: string };
 }
+
+// Mudanças de status permitidas. Qualquer outra (ex.: concluido -> aberto) é recusada.
+export const TRANSICOES: Record<Status, readonly Status[]> = {
+  aberto: ['em_atendimento', 'concluido'],
+  em_atendimento: ['aberto', 'concluido'],
+  concluido: ['em_atendimento'], // reabrir para atendimento
+};

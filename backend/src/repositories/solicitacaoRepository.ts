@@ -1,5 +1,5 @@
 import { query } from '../config/database';
-import type { Solicitacao } from '../types/solicitacao';
+import type { Solicitacao, Status } from '../types/solicitacao';
 import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
 
 // `usuarioId` restringe ao dono (perfil solicitante); os demais campos vêm da query string.
@@ -95,6 +95,16 @@ export const solicitacaoRepository = {
   // Mesma proteção do atualizar: só exclui se ainda estiver aberta.
   async excluir(id: number): Promise<boolean> {
     const { rowCount } = await query(`DELETE FROM solicitacoes WHERE id = $1 AND status = 'aberto'`, [id]);
+    return (rowCount ?? 0) > 0;
+  },
+
+  // Só altera se o status ainda for o `atual` lido pelo service (evita dois atendentes
+  // sobrescreverem um ao outro). Retorna true se alterou.
+  async atualizarStatus(id: number, atual: Status, novo: Status): Promise<boolean> {
+    const { rowCount } = await query(
+      'UPDATE solicitacoes SET status = $1, atualizado_em = NOW() WHERE id = $2 AND status = $3',
+      [novo, id, atual],
+    );
     return (rowCount ?? 0) > 0;
   },
 };
