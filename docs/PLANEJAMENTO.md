@@ -221,7 +221,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **17.4** Print: detalhes e alteração de status
 - [x] **17.5** Print: dashboard
 - [x] **17.6** Print: versão mobile
-- [ ] **17.7** Revisão final do checklist de entrega
+- [x] **17.7** Revisão final do checklist de entrega
 - [ ] **17.8** Push final e verificação do repositório no GitHub
 - [ ] **17.9** Envio ao avaliador
 
