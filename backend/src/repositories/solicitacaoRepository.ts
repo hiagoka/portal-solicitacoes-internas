@@ -1,6 +1,9 @@
 import { query } from '../config/database';
 import type { Solicitacao } from '../types/solicitacao';
-import type { SolicitacaoInput } from '../schemas/solicitacao.schema';
+import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
+
+// `usuarioId` restringe ao dono (perfil solicitante); os demais campos vêm da query string.
+export type FiltrosListagem = FiltrosSolicitacao & { usuarioId?: number };
 
 interface SolicitacaoRow {
   id: number;
@@ -51,10 +54,21 @@ export const solicitacaoRepository = {
     return rows[0] ? paraSolicitacao(rows[0]) : null;
   },
 
-  // `usuarioId` restringe às solicitações de um usuário (solicitante); sem ele lista todas (atendente).
-  async listar(usuarioId?: number): Promise<Solicitacao[]> {
-    const where = usuarioId === undefined ? '' : 'WHERE s.usuario_id = $1';
-    const params = usuarioId === undefined ? [] : [usuarioId];
+  // Monta o WHERE dinamicamente, mas só com condições fixas no código; os VALORES sempre vão
+  // em parâmetros ($1, $2...). Assim a combinação de filtros é segura contra SQL injection.
+  async listar(filtros: FiltrosListagem = {}): Promise<Solicitacao[]> {
+    const condicoes: string[] = [];
+    const params: unknown[] = [];
+    const adicionar = (condicao: string, valor: unknown) => {
+      params.push(valor);
+      condicoes.push(condicao.replace('?', `$${params.length}`));
+    };
+
+    if (filtros.usuarioId !== undefined) adicionar('s.usuario_id = ?', filtros.usuarioId);
+    if (filtros.status) adicionar('s.status = ?', filtros.status);
+    // [filtros adicionais]
+
+    const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
     const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC`, params);
     return rows.map(paraSolicitacao);
   },

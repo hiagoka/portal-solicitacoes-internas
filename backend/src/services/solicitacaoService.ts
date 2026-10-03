@@ -1,6 +1,6 @@
 import { AppError } from '../middlewares/AppError';
 import { solicitacaoRepository } from '../repositories/solicitacaoRepository';
-import type { SolicitacaoInput } from '../schemas/solicitacao.schema';
+import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
 import type { Solicitacao } from '../types/solicitacao';
 import type { UsuarioPublico } from '../types/usuario';
 
@@ -21,8 +21,9 @@ export const solicitacaoService = {
   },
 
   // Atendente lista todas; solicitante apenas as próprias.
-  async listar(usuario: UsuarioPublico): Promise<Solicitacao[]> {
-    return solicitacaoRepository.listar(usuario.perfil === 'atendente' ? undefined : usuario.id);
+  async listar(usuario: UsuarioPublico, filtros: FiltrosSolicitacao): Promise<Solicitacao[]> {
+    const usuarioId = usuario.perfil === 'atendente' ? undefined : usuario.id;
+    return solicitacaoRepository.listar({ ...filtros, usuarioId });
   },
 
   // Regras de edição e exclusão: só o autor, e só enquanto a solicitação estiver aberta.

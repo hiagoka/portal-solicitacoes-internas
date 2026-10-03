@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { solicitacaoService } from '../services/solicitacaoService';
-import type { SolicitacaoInput } from '../schemas/solicitacao.schema';
+import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
 
 // Depois do middleware `autenticar`, req.usuario sempre existe.
 export const solicitacaoController = {
@@ -17,7 +17,8 @@ export const solicitacaoController = {
   },
 
   async listar(req: Request, res: Response) {
-    const solicitacoes = await solicitacaoService.listar(req.usuario!);
+    const filtros = res.locals.query as FiltrosSolicitacao;
+    const solicitacoes = await solicitacaoService.listar(req.usuario!, filtros);
     res.json({ solicitacoes });
   },
 
