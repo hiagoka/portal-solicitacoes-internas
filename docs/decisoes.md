@@ -279,3 +279,10 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** o workflow passou pelo `actionlint` (sem erros) e cada job foi **simulado localmente** com os comandos exatos, num contêiner `node:22` a partir de uma cópia limpa do `HEAD` (`git archive`), com PostgreSQL como serviço. O job E2E foi executado com `docker compose up --wait` a partir de um clone limpo, inclusive com `CI=true` (que liga `--no-sandbox` no Chrome).
 - **Motivo:** descobrir antes do push diferenças de ambiente (versão do Node, repositório inteiro versus só uma pasta, portas ocupadas) em vez de depurar o CI por tentativa e erro.
 - **Porta 8080:** em máquinas onde ela já está em uso, o compose falha ao publicar o frontend; a variável `FRONTEND_PORT` (e `BACKEND_PORT`) resolve, e isso será explicado no README.
+
+## 059 — O primeiro CI real achou o que a simulação local não achou
+- **Fato:** na primeira execução no GitHub, backend e frontend passaram, mas 1 das 81 verificações E2E falhou (filtro de período devolveu lista vazia), embora tivesse passado em todas as execuções locais.
+- **Causa provável:** o teste digitava a data (`DDMMAAAA`) no `<input type="date">`, cujo formato de digitação depende do idioma do navegador (o Chrome do CI é en-US: `MM/DD/AAAA`). Não consegui reproduzir localmente (o `--lang` não altera esse formato no macOS), então a hipótese não foi comprovada; a confirmação virá da própria execução no CI.
+- **Correção:** `preencherData()` no harness define o valor interno (`AAAA-MM-DD`, igual em qualquer idioma) pelo setter nativo e dispara o evento `input`, sem depender de digitação.
+- **Lição:** dados de data e hora são fonte clássica de diferença entre máquinas (idioma e fuso). A suíte já usava o dia de Brasília e datas relativas; agora também não digita datas.
+- **Também:** as actions foram atualizadas para as versões atuais (`checkout`, `setup-node` e `upload-artifact` v7) após aviso do GitHub sobre o fim do suporte ao Node 20.
