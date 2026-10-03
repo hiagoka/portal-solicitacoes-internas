@@ -70,7 +70,10 @@ export const solicitacaoRepository = {
     // Busca por parte do título, sem diferenciar maiúsculas/minúsculas. Os curingas do LIKE (% e _)
     // digitados pelo usuário são escapados para valerem como texto comum.
     if (filtros.busca) adicionar(`s.titulo ILIKE ? ESCAPE '\\'`, `%${filtros.busca.replace(/[\\%_]/g, '\\$&')}%`);
-    // [filtros adicionais]
+    // Período inclusivo, comparando o DIA no fuso de Brasília (e não em UTC), para que uma solicitação
+    // aberta às 22h não "mude de dia" no filtro.
+    if (filtros.de) adicionar(`(s.criado_em AT TIME ZONE 'America/Sao_Paulo')::date >= ?::date`, filtros.de);
+    if (filtros.ate) adicionar(`(s.criado_em AT TIME ZONE 'America/Sao_Paulo')::date <= ?::date`, filtros.ate);
 
     const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
     const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} ${where} ORDER BY s.criado_em DESC, s.id DESC`, params);
