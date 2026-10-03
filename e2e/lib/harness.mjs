@@ -34,9 +34,24 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
 
   // Bloqueio de requisições à API para simular queda: ctx.bloqueio.quando = (url, metodo) => boolean
   const bloqueio = { ativo: false, quando: () => false }
+  // Resposta simulada da API: ctx.simulacao.quando = (url, metodo) => ({ status, corpo }) | null. Serve para
+  // reproduzir situações raras do servidor (ex.: dados que mudam entre o clique e a resposta).
+  const simulacao = { quando: () => null }
   await pagina.setRequestInterception(true)
   pagina.on('request', (r) => {
-    if (bloqueio.ativo && r.url().startsWith(API_URL) && bloqueio.quando(r.url().slice(API_URL.length), r.method())) return r.abort('failed')
+    const ehApi = r.url().startsWith(API_URL)
+    const rota = ehApi ? r.url().slice(API_URL.length) : ''
+    if (ehApi && bloqueio.ativo && bloqueio.quando(rota, r.method())) return r.abort('failed')
+    const falsa = ehApi ? simulacao.quando(rota, r.method()) : null
+    if (falsa) {
+      return r.respond({
+        status: falsa.status ?? 200,
+        contentType: 'application/json',
+        // Necessário quando a API está em outra origem (desenvolvimento: 5173 → 3000).
+        headers: { 'Access-Control-Allow-Origin': APP_URL, 'Access-Control-Allow-Credentials': 'true' },
+        body: JSON.stringify(falsa.corpo),
+      })
+    }
     r.continue()
   })
 
@@ -131,7 +146,7 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   }
 
   return {
-    pagina, checar, finalizar, bloqueio, rede, errosDeConsole,
+    pagina, checar, finalizar, bloqueio, simulacao, rede, errosDeConsole,
     esperar, texto, temTexto, caminho, linhasDaTabela, codigos, opcoesDoSelect,
     clicar, temBotao, temTitulo, campo, preencherData, ir, entrar, sair, foto, apiComo, pausa,
   }

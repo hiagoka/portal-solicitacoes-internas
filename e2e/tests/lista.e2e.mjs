@@ -87,4 +87,37 @@ checar('11 atendente vê solicitantes variados', linhas.some((l) => l[3] === 'Jo
 await pagina.evaluate(() => { localStorage.setItem('tema', 'dark'); document.documentElement.classList.add('dark') })
 await t.foto('escuro')
 
+// ---------- paginação (atendente: 10 no seed; 5 por página → 2 páginas) ----------
+const rotuloPagina = () => pagina.evaluate(() => document.querySelector('nav[aria-label="Paginação"] span')?.textContent?.trim() ?? '')
+const botaoDesabilitado = (rotulo) =>
+  pagina.evaluate((r) => [...document.querySelectorAll('nav[aria-label="Paginação"] button')].find((b) => b.textContent.trim() === r)?.disabled, rotulo)
+checar('12 por padrão: 10 por página, tudo numa página só', (await rotuloPagina()) === 'Página 1 de 1' && (await temTexto('Mostrando 1–10 de 10')))
+await escolher('Por página', '5')
+checar('12 com 5 por página: 5 linhas e "Página 1 de 2"', JSON.stringify(await codigos()) === JSON.stringify(['#0006', '#0001', '#0004', '#0002', '#0005']) && (await rotuloPagina()) === 'Página 1 de 2', `${JSON.stringify(await codigos())} ${await rotuloPagina()}`)
+checar('12 faixa exibida e botão "Anterior" desabilitado na primeira página', (await temTexto('Mostrando 1–5 de 10')) && (await botaoDesabilitado('Anterior')) === true && (await botaoDesabilitado('Próxima')) === false)
+await clicar('Próxima'); await pausa(800)
+checar('13 "Próxima" mostra os 5 mais antigos, sem repetir nenhum', JSON.stringify(await codigos()) === JSON.stringify(['#0010', '#0009', '#0003', '#0008', '#0007']), JSON.stringify(await codigos()))
+checar('13 última página: "Próxima" desabilitada e faixa 6–10', (await rotuloPagina()) === 'Página 2 de 2' && (await botaoDesabilitado('Próxima')) === true && (await temTexto('Mostrando 6–10 de 10')))
+await t.foto('paginacao')
+await escolher('Status', 'concluido')
+checar('14 mudar um filtro volta à primeira página', JSON.stringify(await codigos()) === JSON.stringify(['#0003', '#0008', '#0007']) && (await rotuloPagina()) === 'Página 1 de 1', `${JSON.stringify(await codigos())} ${await rotuloPagina()}`)
+await clicar('Limpar filtros'); await pausa(700)
+await clicar('Próxima'); await pausa(700)
+await escolher('Por página', '10')
+checar('14 mudar o tamanho da página também volta ao início', (await rotuloPagina()) === 'Página 1 de 1' && (await codigos()).length === 10)
+
+// A página pedida deixa de existir (outra pessoa excluiu itens entre o clique e a resposta). Pela interface esse caso
+// quase não é alcançável (a API passa a informar 1 página e "Próxima" fica desabilitada), então simulamos a resposta.
+await escolher('Por página', '5')
+t.simulacao.quando = (url) =>
+  /pagina=2/.test(url) && url.startsWith('/solicitacoes')
+    ? { corpo: { solicitacoes: [], paginacao: { pagina: 2, porPagina: 5, total: 10, totalPaginas: 1 } } }
+    : null
+await clicar('Próxima'); await pausa(900)
+tela = await texto()
+checar('15 página inexistente: aviso claro em vez de tabela vazia', tela.includes('Esta página não existe mais') && tela.includes('Ir para a última página'), tela.slice(0, 200))
+t.simulacao.quando = () => null
+await clicar('Ir para a última página'); await pausa(900)
+checar('15 "Ir para a última página" recupera a lista', (await codigos()).length === 5 && (await rotuloPagina()).startsWith('Página 1 de'), `${(await codigos()).length} ${await rotuloPagina()}`)
+
 await t.finalizar()
