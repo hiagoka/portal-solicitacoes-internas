@@ -1,0 +1,35 @@
+import type { FiltrosSolicitacao, Solicitacao, SolicitacaoInput, Status } from '@/types'
+import { http } from './httpClient'
+
+const BASE = '/solicitacoes'
+
+export const solicitacaoService = {
+  async listar(filtros: FiltrosSolicitacao = {}): Promise<Solicitacao[]> {
+    const { solicitacoes } = await http.get<{ solicitacoes: Solicitacao[] }>(BASE, { ...filtros })
+    return solicitacoes
+  },
+
+  async obter(id: number): Promise<Solicitacao> {
+    const { solicitacao } = await http.get<{ solicitacao: Solicitacao }>(`${BASE}/${id}`)
+    return solicitacao
+  },
+
+  async criar(dados: SolicitacaoInput): Promise<Solicitacao> {
+    const { solicitacao } = await http.post<{ solicitacao: Solicitacao }>(BASE, dados)
+    return solicitacao
+  },
+
+  async editar(id: number, dados: SolicitacaoInput): Promise<Solicitacao> {
+    const { solicitacao } = await http.put<{ solicitacao: Solicitacao }>(`${BASE}/${id}`, dados)
+    return solicitacao
+  },
+
+  async excluir(id: number): Promise<void> {
+    await http.delete<void>(`${BASE}/${id}`)
+  },
+
+  async alterarStatus(id: number, status: Status): Promise<Solicitacao> {
+    const { solicitacao } = await http.patch<{ solicitacao: Solicitacao }>(`${BASE}/${id}/status`, { status })
+    return solicitacao
+  },
+}
