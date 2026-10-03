@@ -67,6 +67,9 @@ export const solicitacaoRepository = {
     if (filtros.usuarioId !== undefined) adicionar('s.usuario_id = ?', filtros.usuarioId);
     if (filtros.status) adicionar('s.status = ?', filtros.status);
     if (filtros.categoria) adicionar('s.categoria = ?', filtros.categoria);
+    // Busca por parte do título, sem diferenciar maiúsculas/minúsculas. Os curingas do LIKE (% e _)
+    // digitados pelo usuário são escapados para valerem como texto comum.
+    if (filtros.busca) adicionar(`s.titulo ILIKE ? ESCAPE '\\'`, `%${filtros.busca.replace(/[\\%_]/g, '\\$&')}%`);
     // [filtros adicionais]
 
     const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
