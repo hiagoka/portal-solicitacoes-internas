@@ -1,6 +1,7 @@
 // Utilitários compartilhados pelas suítes E2E: abre o Chrome, registra a rede e o console, e oferece
 // os gestos comuns (entrar, sair, clicar por rótulo, preencher campo pelo <label>...).
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import puppeteer from 'puppeteer-core'
 
 // Configuração por variáveis de ambiente (os padrões servem ao ambiente de desenvolvimento local).
@@ -9,6 +10,8 @@ export const APP_URL = (process.env.APP_URL ?? 'http://localhost:5173').replace(
 export const API_URL = (process.env.API_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 const CHROME_PATH = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const SAIDA = process.env.E2E_OUT ?? new URL('../resultados/', import.meta.url).pathname
+
+const AXE_FONTE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 
 export const pausa = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 export const diasAtras = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10)
@@ -119,6 +122,24 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
     await clicar('Sair')
     await esperar(() => location.pathname === '/login')
   }
+  // Auditoria de acessibilidade com o axe-core (WCAG 2.x A/AA e boas práticas) na tela atual.
+  // Devolve as violações encontradas, já resumidas: [{ regra, impacto, elementos: [...] }].
+  const auditarAcessibilidade = async () => {
+    await pagina.evaluate(AXE_FONTE) // injeta o axe na página
+    const resultado = await pagina.evaluate(() =>
+      // eslint-disable-next-line no-undef
+      axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] } }),
+    )
+    return resultado.violations.map((v) => ({
+      regra: v.id,
+      impacto: v.impact,
+      ajuda: v.help,
+      elementos: v.nodes.slice(0, 3).map((n) => `${n.target.join(' ')} → ${n.failureSummary?.split('\n')[1]?.trim() ?? ''}`),
+    }))
+  }
+  // Verdadeiro se a página cabe na largura da janela (sem barra de rolagem horizontal).
+  const semRolagemHorizontal = () =>
+    pagina.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
   const foto = (arquivo) => pagina.screenshot({ path: `${SAIDA}/${nomeDaSuite}-${arquivo}.png` })
 
   // Chama a API direto (sem navegador), autenticando como um dos usuários do seed. Serve para
@@ -148,6 +169,6 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   return {
     pagina, checar, finalizar, bloqueio, simulacao, rede, errosDeConsole,
     esperar, texto, temTexto, caminho, linhasDaTabela, codigos, opcoesDoSelect,
-    clicar, temBotao, temTitulo, campo, preencherData, ir, entrar, sair, foto, apiComo, pausa,
+    clicar, temBotao, temTitulo, campo, preencherData, ir, entrar, sair, foto, apiComo, pausa, auditarAcessibilidade, semRolagemHorizontal,
   }
 }
