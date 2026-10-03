@@ -22,3 +22,12 @@ export const TRANSICOES: Record<Status, readonly Status[]> = {
   em_atendimento: ['aberto', 'concluido'],
   concluido: ['em_atendimento'], // reabrir para atendimento
 };
+
+// Informações de paginação devolvidas junto com a lista.
+export interface Paginacao {
+  pagina: number;
+  porPagina: number;
+  /** Total de solicitações que atendem aos filtros (em todas as páginas). */
+  total: number;
+  totalPaginas: number;
+}

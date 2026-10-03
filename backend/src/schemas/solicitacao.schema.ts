@@ -15,6 +15,9 @@ export const idParamSchema = z.object({
 export type SolicitacaoInput = z.infer<typeof solicitacaoSchema>;
 
 // ---- Filtros da listagem (query string) ----
+export const POR_PAGINA_PADRAO = 10;
+export const LIMITE_POR_PAGINA = 50;
+
 // O formulário pode enviar campos vazios (?status=&busca=); tratamos "" como "não informado".
 const vazioParaUndefined = (v: unknown) => (v === '' ? undefined : v);
 
@@ -39,6 +42,19 @@ export const filtrosSchema = z
     busca: z.preprocess(vazioParaUndefined, z.string().trim().max(100, 'A busca pode ter no máximo 100 caracteres').optional()),
     de: dataIso,
     ate: dataIso,
+    pagina: z.preprocess(
+      vazioParaUndefined,
+      z.coerce.number({ error: 'A página precisa ser um número' }).int('A página precisa ser um número inteiro').min(1, 'A página precisa ser 1 ou maior').default(1),
+    ),
+    porPagina: z.preprocess(
+      vazioParaUndefined,
+      z.coerce
+        .number({ error: 'O tamanho da página precisa ser um número' })
+        .int('O tamanho da página precisa ser um número inteiro')
+        .min(1, 'O tamanho da página precisa ser 1 ou maior')
+        .max(LIMITE_POR_PAGINA, `O tamanho da página pode ser no máximo ${LIMITE_POR_PAGINA}`)
+        .default(POR_PAGINA_PADRAO),
+    ),
   })
   .refine((f) => !f.de || !f.ate || f.de <= f.ate, { message: 'A data inicial não pode ser maior que a final', path: ['de'] });
 
