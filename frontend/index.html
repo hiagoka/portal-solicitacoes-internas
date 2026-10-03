@@ -1,10 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Portal de Solicitações</title>
+    <script>
+      // Aplica o tema salvo (ou o do sistema) ANTES de a página renderizar, evitando o "flash" de tema claro.
+      // A chave "tema" é a mesma de src/hooks/useTheme.ts.
+      try {
+        var salvo = localStorage.getItem('tema')
+        var escuro = salvo ? salvo === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (escuro) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
