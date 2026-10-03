@@ -7,6 +7,7 @@ import { errorHandler, naoEncontrado } from './middlewares/errorHandler';
 import { healthRoutes } from './routes/health.routes';
 import { authRoutes } from './routes/auth.routes';
 import { solicitacaoRoutes } from './routes/solicitacao.routes';
+import { dashboardRoutes } from './routes/dashboard.routes';
 
 // Separado do server.ts para que os testes possam importar o app sem abrir uma porta.
 export const app = express();
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use(healthRoutes);
 app.use(authRoutes);
 app.use(solicitacaoRoutes);
+app.use(dashboardRoutes);
 // As demais rotas da aplicação serão registradas aqui.
 
 app.use(naoEncontrado);
