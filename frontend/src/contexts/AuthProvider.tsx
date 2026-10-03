@@ -7,6 +7,7 @@ import { AuthContext, type AuthContextValue } from './authContext'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
   const [carregando, setCarregando] = useState(true)
+  const [saiuVoluntariamente, setSaiuVoluntariamente] = useState(false)
 
   // Ao abrir o app (ou recarregar a página), descobre se o cookie ainda representa uma sessão válida.
   useEffect(() => {
@@ -29,19 +30,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (nome: string, senha: string) => {
     setUsuario(await authService.login(nome, senha))
+    setSaiuVoluntariamente(false)
   }, [])
 
   const logout = useCallback(async () => {
     try {
       await authService.logout()
     } finally {
+      setSaiuVoluntariamente(true)
       setUsuario(null) // mesmo que a chamada falhe, a tela deixa de mostrar o usuário
     }
   }, [])
 
   const valor = useMemo<AuthContextValue>(
-    () => ({ usuario, carregando, login, logout }),
-    [usuario, carregando, login, logout],
+    () => ({ usuario, carregando, saiuVoluntariamente, login, logout }),
+    [usuario, carregando, saiuVoluntariamente, login, logout],
   )
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>
