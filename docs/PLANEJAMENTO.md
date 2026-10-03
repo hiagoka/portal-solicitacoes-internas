@@ -101,7 +101,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **5.4** Filtro por período (data inicial e final)
 - [x] **5.5** Combinar os filtros com query parametrizada (sem concatenar SQL)
 - [x] **5.6** Validar os parâmetros de query com zod
-- [ ] **5.7** Adicionar paginação à listagem *(adiada: ver decisão 025)*
+- [x] **5.7** Adicionar paginação à listagem
 - [x] **5.8** Criar `PATCH /solicitacoes/:id/status` (só atendente)
 - [x] **5.9** Validar transições de status permitidas
 - [x] **5.10** Criar `dashboardRepository` (contagens por status com GROUP BY)
@@ -144,7 +144,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **9.5** Criar a barra de filtros (status e categoria)
 - [x] **9.6** Adicionar filtros de texto e período
 - [x] **9.7** Adicionar o debounce na busca por texto
-- [ ] **9.8** Adicionar a paginação *(adiada: ver decisão 025)*
+- [x] **9.8** Adicionar a paginação
 
 ## Fase 10 — Formulários e detalhes
 - [x] **10.1** Criar o componente de formulário (título, descrição, categoria) com validação
@@ -180,7 +180,7 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 - [x] **13.1** Criar o workflow `.github/workflows/ci.yml` (checkout, setup-node)
 - [x] **13.2** Adicionar o job do backend (install, build, test com serviço Postgres)
 - [x] **13.3** Adicionar o job do frontend (install, lint, build)
-- [ ] **13.4** Conferir o resultado verde no GitHub Actions *(aguardando o push)*
+- [x] **13.4** Conferir o resultado verde no GitHub Actions
 
 ## Fase 14 — Responsividade e UX
 - [ ] **14.1** Adaptar o layout/menu para celular
@@ -243,4 +243,4 @@ A cada decisão relevante, registrar o motivo em `docs/decisoes.md`. No final vi
 - **Memorial deixado para o fim:** anotar decisões ao longo do caminho.
 - **Escopo:** os 5 requisitos funcionais vêm antes de qualquer diferencial.
 - **"Funciona na minha máquina":** testar o Docker Compose a partir de um clone limpo.
-- **Corte, se apertar:** paginação (5.7, 9.8), rate limit (3.9) e transições de status (5.9) são os primeiros candidatos.
+- **Corte, se apertar:** nada precisou ser cortado: paginação, rate limit e transições de status foram todos implementados.

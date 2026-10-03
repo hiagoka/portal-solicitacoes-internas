@@ -114,7 +114,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 025 — Paginação adiada
 - **Decisão:** a listagem devolve todas as solicitações do escopo, sem paginação.
 - **Motivo:** priorizar os requisitos obrigatórios dentro do prazo; o volume esperado é pequeno.
-- **Limitação / melhoria futura:** com milhares de registros, a resposta ficaria pesada. Evolução natural: `LIMIT/OFFSET` (ou paginação por cursor) e total de itens no cabeçalho.
+- **Revisão:** implementada depois, com tempo disponível (decisões 060 e 061).
 
 ## 026 — Testes de integração contra um PostgreSQL real
 - **Decisão:** Vitest + Supertest exercitam a API de ponta a ponta (HTTP → middlewares → service → SQL → banco), sem mocks do banco.
@@ -282,7 +282,19 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 
 ## 059 — O primeiro CI real achou o que a simulação local não achou
 - **Fato:** na primeira execução no GitHub, backend e frontend passaram, mas 1 das 81 verificações E2E falhou (filtro de período devolveu lista vazia), embora tivesse passado em todas as execuções locais.
-- **Causa provável:** o teste digitava a data (`DDMMAAAA`) no `<input type="date">`, cujo formato de digitação depende do idioma do navegador (o Chrome do CI é en-US: `MM/DD/AAAA`). Não consegui reproduzir localmente (o `--lang` não altera esse formato no macOS), então a hipótese não foi comprovada; a confirmação virá da própria execução no CI.
+- **Causa provável:** o teste digitava a data (`DDMMAAAA`) no `<input type="date">`, cujo formato de digitação depende do idioma do navegador (o Chrome do CI é en-US: `MM/DD/AAAA`). Não consegui reproduzir localmente (o `--lang` não altera esse formato no macOS), então a hipótese não foi comprovada; **confirmado**: a execução seguinte no GitHub passou nos três jobs (81 verificações E2E).
 - **Correção:** `preencherData()` no harness define o valor interno (`AAAA-MM-DD`, igual em qualquer idioma) pelo setter nativo e dispara o evento `input`, sem depender de digitação.
 - **Lição:** dados de data e hora são fonte clássica de diferença entre máquinas (idioma e fuso). A suíte já usava o dia de Brasília e datas relativas; agora também não digita datas.
 - **Também:** as actions foram atualizadas para as versões atuais (`checkout`, `setup-node` e `upload-artifact` v7) após aviso do GitHub sobre o fim do suporte ao Node 20.
+
+## 060 — Paginação da API com LIMIT/OFFSET e total sobre o mesmo filtro
+- **Decisão:** `GET /solicitacoes` aceita `pagina` (padrão 1) e `porPagina` (padrão 10, máximo 50) e devolve `paginacao: { pagina, porPagina, total, totalPaginas }`. O total vem de um `COUNT(*)` com o **mesmo** `WHERE` (filtros e escopo do perfil) e roda em paralelo com a consulta da página. A ordenação (`criado_em DESC, id DESC`) é estável, então nenhum item se repete ou se perde entre páginas.
+- **Comportamento:** página além da última responde 200 com lista vazia e o total correto; sem resultados, `totalPaginas` é 1 (nunca "página 1 de 0"); valores inválidos (0, negativo, decimal, texto, acima de 50) respondem 400 com a mensagem por campo. O padrão de 10 por página mantém compatibilidade com quem não envia os parâmetros.
+- **Limite máximo de 50:** impede que uma requisição peça a tabela inteira.
+- **Alternativas:** paginação por cursor/keyset (melhor desempenho em tabelas enormes, pois `OFFSET` precisa percorrer as linhas puladas, mas não permite "ir para a página N" e é mais complexa). Para o volume esperado de um portal interno, `OFFSET` é adequado e simples de usar na interface.
+- **Verificado:** 18 testes de integração (ordem, escopo, filtros, extremos, validação, junção das páginas igual à lista completa).
+
+## 061 — Paginação na interface
+- **Decisão:** rodapé com a faixa exibida ("Mostrando 6–10 de 10"), seletor de itens por página (5, 10, 20, 50) e botões Anterior/Próxima com a posição ("Página 2 de 3"). Mudar qualquer filtro **ou** o tamanho da página volta à página 1; a página anterior some enquanto a nova carrega (esmaecida, botões bloqueados).
+- **Rede de segurança:** se a página pedida não existir mais (outra pessoa excluiu itens entre o clique e a resposta), a tela avisa "Esta página não existe mais" e oferece "Ir para a última página", em vez de mostrar uma tabela vazia sem explicação. Pela interface esse caso é quase inalcançável (a API passa a informar menos páginas e o botão "Próxima" é desabilitado), então o teste E2E **simula** a resposta do servidor.
+- **Limitação:** a página e os filtros não ficam na URL (não sobrevivem ao recarregamento).
