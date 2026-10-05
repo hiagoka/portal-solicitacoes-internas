@@ -89,6 +89,13 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
       - name: Sobe o sistema completo (banco, API e interface)
         run: docker compose up --build -d --wait --wait-timeout 240
+      - name: A API não pode estar exposta fora do nginx
+        # Com TRUST_PROXY ligado, a API confia no X-Forwarded-For; se a porta 3000 fosse publicada, o limite de
+        # tentativas de login poderia ser burlado forjando esse cabeçalho.
+        run: |
+          if curl -s --max-time 3 http://localhost:3000/health; then
+            echo "::error::A porta 3000 da API está acessível diretamente"; exit 1
+          fi
       - name: Instala as dependências dos testes E2E
         working-directory: e2e
         run: npm ci
