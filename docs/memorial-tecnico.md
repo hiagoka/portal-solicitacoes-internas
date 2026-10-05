@@ -1,13 +1,13 @@
 # Memorial Técnico de Desenvolvimento
 
-**Projeto:** Portal de Solicitações Internas
-**Contexto:** 2ª etapa do processo seletivo para Desenvolvedor(a) de Sistemas Júnior, bit Soluções
-**Autor:** Hiago Kalil
+**Projeto:** Portal de Solicitações Internas  
+**Contexto:** 2ª etapa do processo seletivo para Desenvolvedor(a) de Sistemas Júnior, bit Soluções  
+**Autor:** Hiago Kalil  
 **Repositório:** https://github.com/hiagoka/portal-solicitacoes-internas
 
 Este documento explica *como* e *por que* o sistema foi construído da forma que foi. A visão geral e as instruções de execução
 estão no [README](../README.md); cada decisão individual, com seu contexto e alternativas, está no
-[registro de decisões](decisoes.md) (65 entradas, citadas aqui como "decisão NNN").
+[registro de decisões](decisoes.md) (71 entradas, citadas aqui como "decisão NNN").
 
 ## Sumário
 
@@ -53,8 +53,8 @@ e **justificar as escolhas**.
 |---|---|
 | Código de produção (backend + frontend + SQL) | ≈ 3.500 linhas |
 | Código de teste (backend, frontend e E2E) | ≈ 1.900 linhas |
-| Testes automatizados | 134 (API) + 67 (frontend) + 160 verificações em navegador real |
-| Commits | cerca de 170, em padrão *Conventional Commits* |
+| Testes automatizados | 164 (API) + 84 (frontend) + 177 verificações em navegador real |
+| Commits | mais de 190, em padrão *Conventional Commits* |
 | Decisões documentadas | 65 |
 
 ---
@@ -76,8 +76,8 @@ e **justificar as escolhas**.
 | Build/dev frontend | Vite | 8.3 | Servidor de desenvolvimento e empacotamento |
 | Estilo | Tailwind CSS | 4.3 | Estilização por utilitários, lendo o tema único |
 | Roteamento | React Router | 8.4 | Navegação, rotas protegidas |
-| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 134 testes de API, 67 de frontend |
-| Testes (navegador) | `puppeteer-core`, axe-core | 24.43 / 4.13 | 160 verificações, incluindo acessibilidade |
+| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 164 testes de API, 84 de frontend |
+| Testes (navegador) | `puppeteer-core`, axe-core | 24.43 / 4.13 | 177 verificações, incluindo acessibilidade |
 | Qualidade estática | `tsc` (modo estrito), oxlint | — / 1.81 | Tipos e lint |
 | Containerização | Docker, Docker Compose | — | Empacotamento e orquestração |
 | Servidor web | nginx | 1.27 | Serve a interface e faz proxy reverso de `/api` |
@@ -294,6 +294,8 @@ permite aos testes importar o aplicativo sem ocupar uma porta (decisão 007).
 ```mermaid
 erDiagram
     USUARIOS ||--o{ SOLICITACOES : "abre"
+    SOLICITACOES ||--o{ HISTORICO_STATUS : "registra"
+    USUARIOS ||--o{ HISTORICO_STATUS : "faz"
     USUARIOS {
         serial id PK
         varchar nome
@@ -310,7 +312,16 @@ erDiagram
         varchar status "aberto | em_atendimento | concluido"
         timestamptz criado_em
         timestamptz atualizado_em
+        timestamptz excluido_em "nulo = ativa (exclusão lógica)"
         int usuario_id FK
+    }
+    HISTORICO_STATUS {
+        serial id PK
+        int solicitacao_id FK
+        varchar status_anterior "nulo na abertura"
+        varchar status_novo
+        int usuario_id FK "quem abriu ou mudou"
+        timestamptz criado_em
     }
 ```
 
@@ -325,8 +336,13 @@ Detalhamento completo em [`database/dicionario-de-dados.md`](../database/diciona
   (decisões 022 e 042). Sem isso, uma solicitação aberta às 22h cairia "no dia seguinte" em UTC.
 - **Índices** nas colunas filtradas ou agrupadas (`status`, `categoria`, `criado_em`, `usuario_id`).
 - **`atualizado_em` mantido pela aplicação** a cada edição ou mudança de status, e documentado como tal no dicionário.
-- **Duas tabelas bastam** para os requisitos. Não foram criadas tabelas de categorias ou status: são listas fixas do enunciado,
-  e uma tabela adicional só traria junções (ver 6.3).
+- **Exclusão lógica** (decisão 069): excluir preenche `excluido_em` em vez de apagar a linha. A solicitação some de todas as
+  consultas (listagem, detalhes, busca, totais, dashboard), mas fica no banco como trilha de auditoria, e o código nunca é reaproveitado.
+- **Histórico de status** (decisão 070): a tabela `historico_status` guarda um evento para a abertura e um para cada mudança, com
+  quem fez e quando. O evento é gravado **na mesma transação** da operação: se o registro do histórico falhar, a operação inteira
+  é desfeita. Isso foi provado em teste, quebrando de propósito a gravação do histórico e conferindo que o status não muda.
+- **Três tabelas bastam.** Não foram criadas tabelas de categorias ou status: são listas fixas do enunciado, e uma tabela
+  adicional só traria junções (ver 6.3).
 
 ### 4.4 Padrões de projeto utilizados
 
@@ -337,6 +353,7 @@ Detalhamento completo em [`database/dicionario-de-dados.md`](../database/diciona
 | **Cadeia de middlewares** (*Chain of Responsibility*) | `autenticar → exigirPerfil → validar → controller` | Cada etapa decide se passa a requisição adiante ou a interrompe com um erro |
 | **Fábrica de middleware** | `exigirPerfil('atendente')`, `validar(schema, 'query')` | Gera middlewares configuráveis sem duplicar código |
 | **Erro de domínio tipado** | `AppError` + tratador global | Todo erro esperado vira o mesmo formato JSON; erros inesperados viram um 500 genérico, sem vazar detalhes |
+| **Transação** (unidade de trabalho) | `transacao()` em `config/database.ts` | Duas gravações que precisam andar juntas (mudar o status e registrar o evento) viram uma operação: ou valem as duas, ou nenhuma |
 | **Mapper (DTO)** | `paraSolicitacao` no repositório | Traduz o formato do banco para o da API em um único ponto |
 | **Provider / Context** | `AuthProvider`, `ToastProvider` | Estado global de sessão e notificações sem *prop drilling* |
 | **Hooks personalizados** | `useConsulta`, `useFormularioSolicitacao`… | Separam lógica de estado da apresentação e eliminam duplicação |
@@ -386,6 +403,9 @@ ignorado pelo Git, validação na inicialização); a API roda como usuário sem
   mensagem no campo correspondente.
 - **Paginação** com `pagina` e `porPagina` (padrão 10, máximo 50), resposta com `{ solicitacoes, paginacao }`; o total é
   calculado sobre o mesmo filtro e escopo, e a ordenação é estável (decisão 060).
+- **Estado da listagem na URL** (decisão 068): filtros, busca e página vivem na própria URL (`/solicitacoes?status=aberto&pagina=2`).
+  O link pode ser compartilhado, recarregar mantém a tela e o botão "voltar" devolve a lista como estava; valores inválidos na URL
+  são descartados em silêncio, e os cartões do dashboard são links para a lista já filtrada.
 - **Cliente HTTP único** no frontend: envia o cookie (`credentials: 'include'`), converte falhas em um `ApiError` tipado
   (inclusive "sem conexão", status 0) e avisa a aplicação quando a sessão expira (decisão 033).
 - **Empacotado**, o navegador usa sempre `/api` (mesma origem), então não há CORS nem dependência de `localhost`.
@@ -431,8 +451,9 @@ do sistema, o que valida também o `schema.sql` e o `seed.sql`.
 
 ### 5.2 Defeitos reais que os testes acharam
 
-Os dez primeiros vieram de testes automatizados, em geral da camada mais externa; os quatro últimos, de uma **revisão de código
-independente** feita ao final (decisão 067), e cada um foi reproduzido antes de ser corrigido. A tabela mostra por que cada
+Os dez primeiros vieram de testes automatizados, em geral da camada mais externa; os quatro seguintes (11 a 14), de uma **revisão de código
+independente** feita ao final (decisão 067), cada um reproduzido antes de ser corrigido; o último (15), de um teste de navegador
+durante as melhorias posteriores. A tabela mostra por que cada
 camada, inclusive a revisão por outro par de olhos, importa.
 
 | # | O que aconteceu | Como foi achado | Correção |
@@ -450,6 +471,7 @@ camada, inclusive a revisão por outro par de olhos, importa.
 | 11 | A **API inteira caía** se o banco reiniciasse ou derrubasse uma conexão ociosa: o pool não tinha ouvinte do evento `error` | revisão de código; reproduzido derrubando as conexões | `pool.on('error')` e um teste que derruba as conexões e exige que a API continue (decisão 067) |
 | 12 | **Limite de login burlável** pela porta 3000 publicada no compose combinada com `TRUST_PROXY` | revisão de código; reproduzido (12 tentativas com IP forjado, nenhum 429) | a API deixa de ser publicada; o CI verifica que a 3000 está fechada |
 | 13 | Entradas hostis viravam **erro 500**: código acima do INTEGER, data com ano `0000`, caractere nulo `\u0000`, corpo acima de 100 kb | revisão de código; os 4 reproduzidos | validação no Zod, 413/415 no tratador de erros e 16 testes de entradas inválidas |
+| 15 | Ao levar os filtros para a URL, o campo de busca **perdia o texto digitado** (estava controlado só pela URL, que atualiza com atraso) | teste E2E da busca | o campo tem estado local; a URL o recebe em seguida e só repõe o campo em mudanças externas (voltar/avançar) (decisão 068) |
 | 14 | "Sair" com a API fora do ar **fingia** ter saído (cookie ainda válido) e `/solicitacoes/abc` consultava a API à toa | revisão de código; testes E2E vermelhos antes e verdes depois | o logout só conclui quando o servidor confirma; `useConsulta` ganhou a opção `habilitada` |
 
 Aprendizados: (a) o teste de ponta a ponta é o que encontra defeitos de integração; (d) uma revisão independente encontra o que testes escritos pelo mesmo autor não alcançam (entradas hostis, falhas de infraestrutura e configuração insegura de implantação), e o resultado da revisão deve ser reproduzido antes de ser aceito; (b) rodar em ambiente limpo e diferente do
@@ -470,8 +492,8 @@ substituem olhar o resultado (item 9).
 - **Limite de login em memória:** não é compartilhado entre réplicas da API.
 - **Busca textual** (`ILIKE '%texto%'`) não usa índice; é adequada ao volume esperado, mas não escalaria para milhões de linhas.
 - **Paginação por `OFFSET`:** simples e permite "ir para a página N", porém degrada em tabelas enormes (decisão 060).
-- **Exclusão definitiva.** `DELETE` remove a linha; não há exclusão lógica nem histórico das alterações de status.
-- **Filtros e página não ficam na URL:** não sobrevivem ao recarregar nem podem ser compartilhados por link.
+- **Exclusão lógica sem restauração:** uma solicitação excluída fica no banco, mas não há tela para restaurá-la nem rotina de expurgo.
+- **O histórico cobre só mudanças de status:** editar título, descrição ou categoria não gera evento.
 - **Gestão de usuários inexistente na interface:** usuários vêm do `seed.sql`; não há cadastro, troca de senha nem recuperação.
 - **Textos fixos em português** (sem biblioteca de internacionalização).
 - **Acessibilidade verificada por ferramenta automática;** não houve teste com leitor de tela real (VoiceOver, NVDA), que
@@ -482,13 +504,13 @@ substituem olhar o resultado (item 9).
 
 Em ordem aproximada de valor:
 
-1. **Histórico e comentários:** tabela de eventos (quem mudou o quê, quando) e conversa entre solicitante e atendente na
-   solicitação; é o complemento natural do fluxo de atendimento.
+1. **Comentários** na solicitação (conversa entre solicitante e atendente) e **histórico também das edições** de conteúdo, completando a
+   trilha de auditoria que hoje cobre só os status.
 2. **Notificações** por e-mail ao mudar o status.
 3. **Gestão de usuários** (cadastro, perfis, troca e recuperação de senha) e **integração com SSO** corporativo (OIDC/SAML).
-4. **Filtros na URL** (links compartilháveis) e uma biblioteca de dados como TanStack Query (cache, revalidação).
+4. Uma biblioteca de dados como TanStack Query (cache, revalidação) no frontend.
 5. **Anexos** nas solicitações, **prazos/SLA** e **atribuição** a um atendente específico.
-6. **Exclusão lógica** (`excluido_em`) em vez de apagar, preservando a trilha.
+6. **Restauração** de solicitações excluídas (hoje só pelo banco) e uma rotina de expurgo por prazo de retenção.
 7. **Documentação da API** em OpenAPI, e geração dos tipos do frontend a partir dela (hoje espelhados à mão).
 8. **Testes visuais de regressão** e uma varredura de acessibilidade com leitor de tela.
 
