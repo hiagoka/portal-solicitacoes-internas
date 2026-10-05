@@ -1,5 +1,5 @@
 # Sobe o sistema completo: banco, API e interface web.
-#   docker compose up --build        →  http://localhost:8080
+#   docker compose up --build        →  http://localhost:8080  (a API fica em http://localhost:8080/api)
 # Os valores abaixo têm padrões para demonstração; para mudá-los, copie .env.example para .env.
 
 name: portal-solicitacoes
@@ -40,8 +40,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
+    # A API NÃO é publicada no host: o único caminho até ela é o nginx (/api). Isso é proposital. Com TRUST_PROXY ligado,
+    # a API confia no cabeçalho X-Forwarded-For; quem a acessasse direto poderia forjá-lo e burlar o limite de tentativas
+    # de login. Se precisar chamá-la diretamente em desenvolvimento, publique só para a sua máquina e DESLIGUE o proxy:
+    #   ports: ["127.0.0.1:3000:3000"]   e   TRUST_PROXY: "false"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
       interval: 10s
