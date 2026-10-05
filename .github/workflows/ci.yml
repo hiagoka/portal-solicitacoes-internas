@@ -45,6 +45,8 @@ jobs:
       - run: npm ci
       - name: Verificação de tipos
         run: npm run typecheck
+      - name: Lint
+        run: npm run lint
       - name: Build
         run: npm run build
       - name: Testes
