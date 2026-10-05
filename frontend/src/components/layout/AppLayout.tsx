@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router'
+import { ErrorBoundary } from './ErrorBoundary'
 import { Header } from './Header'
 
 // Moldura das telas autenticadas: cabeçalho no topo e o conteúdo da rota atual embaixo.
@@ -32,7 +33,11 @@ export function AppLayout() {
       </a>
       <Header />
       <main id="conteudo" ref={principalRef} tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 outline-none">
-        <Outlet />
+        {/* A chave troca com a rota: um erro numa tela não "gruda" quando o usuário navega para outra. O cabeçalho fica fora
+            do limite, então o menu continua utilizável mesmo se a tela atual quebrar. */}
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   )

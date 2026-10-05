@@ -19,7 +19,8 @@ export function Spinner({ size = 'md', label = 'Carregando', className }: Spinne
     <span role="status" className={cn('inline-flex', className)}>
       <span
         aria-hidden="true"
-        className={cn('animate-spin rounded-full border-current border-t-transparent', TAMANHOS[size])}
+        // Quem pede "reduzir movimento" no sistema não vê o giro (movimento contínuo pode causar desconforto); recebe um pulso suave de opacidade.
+        className={cn('animate-spin motion-reduce:animate-pulse rounded-full border-current border-t-transparent', TAMANHOS[size])}
       />
       <span className="sr-only">{label}</span>
     </span>

@@ -1,4 +1,5 @@
 export { AppLayout } from './AppLayout'
+export { ErrorBoundary } from './ErrorBoundary'
 export { Header } from './Header'
 export { ProtectedRoute } from './ProtectedRoute'
 export { ThemeToggle } from './ThemeToggle'
