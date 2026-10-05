@@ -3,7 +3,7 @@
 import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('responsivo', { largura: 390, altura: 844 })
-const { pagina, checar, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, codigos } = t
+const { pagina, checar, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, codigos, digitar } = t
 
 const viewport = (largura, altura) => pagina.setViewport({ width: largura, height: altura, isMobile: largura < 700, hasTouch: largura < 700 })
 // Elemento existe E está visível (não é display:none nem tem tamanho zero).
@@ -80,9 +80,9 @@ checar('390 formulário: botão de enviar ocupa a largura toda e é alto o basta
 await t.foto('celular-formulario')
 
 // ---- fluxo completo no celular: criar e excluir
-await (await campo('Título')).type('Criada no celular')
+await digitar(await campo('Título'), 'Criada no celular')
 await (await campo('Categoria')).select('RH')
-await (await campo('Descrição')).type('Fluxo completo em tela pequena')
+await digitar(await campo('Descrição'), 'Fluxo completo em tela pequena')
 await clicar('Criar solicitação')
 await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname))
 await esperar(() => document.body.innerText.includes('Criada no celular'))

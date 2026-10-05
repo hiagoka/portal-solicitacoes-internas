@@ -2,7 +2,7 @@
 import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('crud', { largura: 1100, altura: 900 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo, digitar } = t
 const modalAberto = () => pagina.evaluate(() => !!document.querySelector('dialog[open]'))
 const clicarNoModal = (rotulo) =>
   pagina.evaluate((r) => [...document.querySelectorAll('dialog button')].find((b) => b.textContent.trim() === r).click(), rotulo)
@@ -17,12 +17,12 @@ await clicar('Criar solicitação'); await pausa(300)
 let tela = await texto()
 checar('1 envio vazio mostra os 3 erros de campo', tela.includes('ao menos 3 caracteres') && tela.includes('Informe a descrição') && tela.includes('Selecione a categoria'))
 await t.foto('form-erros')
-await (await campo('Título')).type('ab')
-await (await campo('Descrição')).type('Descrição de teste\nsegunda linha')
+await digitar(await campo('Título'), 'ab')
+await digitar(await campo('Descrição'), 'Descrição de teste\nsegunda linha')
 await (await campo('Categoria')).select('Financeiro')
 await clicar('Criar solicitação'); await pausa(300)
 checar('1 título curto continua com erro', await temTexto('ao menos 3 caracteres'))
-await (await campo('Título')).type('c Reembolso E2E')
+await digitar(await campo('Título'), 'c Reembolso E2E')
 await clicar('Criar solicitação')
 await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname))
 const idNovo = caminho().split('/').pop()
@@ -40,7 +40,7 @@ await clicar('Editar')
 await esperar(() => location.pathname.endsWith('/editar') && document.querySelector('input'))
 checar('4 editar abre o formulário preenchido', (await (await campo('Título')).evaluate((e) => e.value)) === 'abc Reembolso E2E' && (await (await campo('Categoria')).evaluate((e) => e.value)) === 'Financeiro')
 await (await campo('Título')).click({ clickCount: 3 })
-await (await campo('Título')).type('Reembolso E2E (editado)')
+await digitar(await campo('Título'), 'Reembolso E2E (editado)')
 await clicar('Salvar alterações')
 await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname) && document.body.innerText.includes('(editado)'))
 await pausa(300)

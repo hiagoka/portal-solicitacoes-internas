@@ -108,6 +108,19 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
       el.dispatchEvent(new Event('input', { bubbles: true }))
     }, iso)
   }
+  // Digita pelo caminho de INSERÇÃO DE TEXTO (Input.insertText), que gera os eventos beforeinput/input observados pelo React,
+  // e não pelo de teclas (keydown/keyup). Motivo, comprovado em diagnóstico: em algumas sessões do Chrome de teste a
+  // janela recebe o foco mas NENHUM evento de tecla chega à página, e `ElementHandle.type()` "digita" sem efeito. `alvo`
+  // pode ser um seletor CSS ou um ElementHandle. Com um trecho selecionado, o texto o substitui (como ao digitar de verdade).
+  const digitar = async (alvo, texto, { atraso = 0 } = {}) => {
+    const el = typeof alvo === 'string' ? await pagina.$(alvo) : alvo
+    if (!el) throw new Error(`Campo não encontrado: ${String(alvo)}`)
+    await el.focus()
+    for (const caractere of texto) {
+      await pagina.keyboard.sendCharacter(caractere)
+      if (atraso) await pausa(atraso)
+    }
+  }
   const ir = async (rota) => {
     await pagina.goto(APP_URL + rota, { waitUntil: 'networkidle0' })
     await pausa(300)
@@ -115,8 +128,8 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   const entrar = async (usuario, senha = 'senha123') => {
     await pagina.goto('about:blank') // evita a corrida do Puppeteer ao navegar para a mesma URL em que já está
     await pagina.goto(`${APP_URL}/login`, { waitUntil: 'networkidle0' })
-    await pagina.type('input[autocomplete=username]', usuario)
-    await pagina.type('input[autocomplete=current-password]', senha)
+    await digitar('input[autocomplete=username]', usuario)
+    await digitar('input[autocomplete=current-password]', senha)
     await pagina.click('button[type=submit]')
     await esperar(() => location.pathname !== '/login')
     await pausa(300)
@@ -173,6 +186,6 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   return {
     pagina, checar, finalizar, bloqueio, simulacao, rede, errosDeConsole,
     esperar, texto, temTexto, caminho, linhasDaTabela, codigos, opcoesDoSelect,
-    clicar, temBotao, temTitulo, campo, preencherData, ir, entrar, sair, foto, apiComo, pausa, auditarAcessibilidade, semRolagemHorizontal,
+    clicar, temBotao, temTitulo, campo, digitar, preencherData, ir, entrar, sair, foto, apiComo, pausa, auditarAcessibilidade, semRolagemHorizontal,
   }
 }

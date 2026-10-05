@@ -2,7 +2,7 @@
 import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('dashboard', { largura: 1100, altura: 800 })
-const { pagina, checar, texto, caminho, esperar, clicar, entrar, sair, apiComo } = t
+const { pagina, checar, texto, caminho, esperar, clicar, ir, entrar, sair, apiComo } = t
 
 // lê os 4 cartões: [{ rotulo, valor }]
 const cartoes = () =>
@@ -54,6 +54,22 @@ await abrirDashboard('atendente')
 tela = await texto()
 checar('4 atendente: 10 / 4 / 3 / 3', (await valores()) === '[10,4,3,3]', await valores())
 checar('4 subtítulo do atendente', tela.includes('Visão geral de todas as solicitações.'))
+
+// ---- cartões do dashboard são links para a lista já filtrada
+const clicarCartao = (inicio) => pagina.evaluate((i) => [...document.querySelectorAll('a')].find((a) => a.getAttribute('aria-label')?.startsWith(i)).click(), inicio)
+const consulta = () => new URL(pagina.url()).search
+await clicarCartao('Aberto:')
+await esperar(() => location.pathname === '/solicitacoes' && document.querySelector('tbody tr'))
+const codigosAbertas = await t.codigos()
+checar('4 cartão "Aberto" abre a lista filtrada por esse status', consulta() === '?status=aberto' && JSON.stringify(codigosAbertas) === JSON.stringify(['#0006', '#0001', '#0004', '#0009']), `${consulta()} ${JSON.stringify(codigosAbertas)}`)
+await pagina.goBack({ waitUntil: 'networkidle0' })
+await esperar(() => document.querySelector('p.text-4xl'))
+checar('4 "voltar" retorna ao dashboard', caminho() === '/')
+await clicarCartao('Total de solicitações:')
+await esperar(() => location.pathname === '/solicitacoes' && document.querySelector('tbody tr'))
+checar('4 cartão "Total" abre a lista sem filtro', consulta() === '' && (await t.codigos()).length === 10, consulta())
+await ir('/')
+await esperar(() => document.querySelector('p.text-4xl'))
 
 // ---- erro + tentar novamente
 t.bloqueio.quando = (url) => url === '/dashboard'

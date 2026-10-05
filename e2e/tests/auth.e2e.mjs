@@ -2,7 +2,7 @@
 import { iniciar } from '../lib/harness.mjs'
 
 const t = await iniciar('auth', { largura: 1100, altura: 700 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, digitar } = t
 
 // 1. rota protegida sem login
 await ir('/')
@@ -14,8 +14,8 @@ await esperar(() => document.querySelector('[role=alert]'))
 checar('2 envio vazio mostra validação', (await texto()).includes('Informe o usuário e a senha.'))
 
 // 3. senha errada
-await pagina.type('input[autocomplete=username]', 'maria')
-await pagina.type('input[autocomplete=current-password]', 'errada')
+await digitar('input[autocomplete=username]', 'maria')
+await digitar('input[autocomplete=current-password]', 'errada')
 await pagina.click('button[type=submit]')
 await esperar(() => document.body.innerText.includes('Usuário ou senha inválidos'))
 checar('3 senha errada mostra a mensagem da API e continua no login', (await texto()).includes('Usuário ou senha inválidos') && caminho() === '/login')
@@ -58,8 +58,8 @@ checar('9 após sair, "/" exige login de novo', caminho() === '/login')
 // 10. deep link volta ao destino original após login
 await ir('/rota-protegida-x')
 checar('10 deep link sem login vai ao login', caminho() === '/login')
-await pagina.type('input[autocomplete=username]', 'atendente')
-await pagina.type('input[autocomplete=current-password]', 'senha123')
+await digitar('input[autocomplete=username]', 'atendente')
+await digitar('input[autocomplete=current-password]', 'senha123')
 await pagina.click('button[type=submit]')
 await esperar(() => location.pathname === '/rota-protegida-x')
 checar('10 após o login volta à rota pedida', caminho() === '/rota-protegida-x', caminho())

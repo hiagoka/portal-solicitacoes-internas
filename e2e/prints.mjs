@@ -4,7 +4,7 @@
 import { iniciar, pausa } from './lib/harness.mjs'
 
 const t = await iniciar('', { largura: 1280, altura: 800 })
-const { pagina, esperar, clicar, ir, entrar, sair, campo, texto, foto } = t
+const { pagina, esperar, clicar, ir, entrar, sair, campo, texto, foto, digitar } = t
 
 const tema = async (modo) => {
   await pagina.evaluate((m) => { localStorage.setItem('tema', m); document.documentElement.classList.toggle('dark', m === 'dark') }, modo)
@@ -17,8 +17,8 @@ const selecionar = async (rotulo, valor) => { await (await campo(rotulo)).select
 // 01 — login
 await ir('/login'); await tema('light')
 await foto('01-login')
-await pagina.type('input[autocomplete=username]', 'maria')
-await pagina.type('input[autocomplete=current-password]', 'senha-errada')
+await digitar('input[autocomplete=username]', 'maria')
+await digitar('input[autocomplete=current-password]', 'senha-errada')
 await pagina.click('button[type=submit]')
 await esperar(() => document.querySelector('[role=alert]'))
 await foto('02-login-erro-de-credenciais')
@@ -31,16 +31,16 @@ await foto('03-dashboard-solicitante')
 await ir('/solicitacoes'); await esperar(() => document.querySelector('tbody tr'))
 await foto('04-listagem-solicitante')
 await selecionar('Status', 'aberto')
-await (await campo('Buscar pelo título')).type('nota'); await pausa(1000)
+await digitar(await campo('Buscar pelo título'), 'nota'); await pausa(1000)
 await foto('05-listagem-com-filtros')
 
 // 06 — formulário com erros de validação, 07 — preenchido
 await ir('/solicitacoes/nova')
 await clicar('Criar solicitação'); await pausa(300)
 await foto('06-formulario-com-erros-de-validacao')
-await (await campo('Título')).type('Troca de monitor do setor financeiro')
+await digitar(await campo('Título'), 'Troca de monitor do setor financeiro')
 await (await campo('Categoria')).select('Compras')
-await (await campo('Descrição')).type('O monitor atual apresenta falhas na imagem. Solicito a substituição por um modelo de 24 polegadas.')
+await digitar(await campo('Descrição'), 'O monitor atual apresenta falhas na imagem. Solicito a substituição por um modelo de 24 polegadas.')
 await foto('07-formulario-preenchido')
 
 // 08, 09 — detalhes do autor e modal de exclusão

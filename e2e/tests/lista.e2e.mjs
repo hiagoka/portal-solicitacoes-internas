@@ -2,7 +2,7 @@
 import { diasAtras, iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('lista', { largura: 1200, altura: 900 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, preencherData, codigos, linhasDaTabela, rede } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, preencherData, codigos, linhasDaTabela, rede, digitar } = t
 
 async function irParaLista() {
   await ir('/solicitacoes')
@@ -36,12 +36,12 @@ checar('4 limpar volta a 5 linhas e some o botão', (await codigos()).length ===
 // debounce
 const antes = listagens()
 const busca = await campo('Buscar pelo título')
-await busca.type('nota', { delay: 40 })
+await digitar(busca, 'nota', { atraso: 40 })
 await pausa(1000)
 checar('5 busca por texto filtra o título', JSON.stringify(await codigos()) === JSON.stringify(['#0009']), JSON.stringify(await codigos()))
 checar('5 debounce: digitar 4 letras faz no máximo 1 requisição', listagens() - antes <= 1, `chamadas=${listagens() - antes}`)
 await busca.click({ clickCount: 3 })
-await busca.type('zzzz-nao-existe')
+await digitar(busca, 'zzzz-nao-existe')
 await pausa(1000)
 tela = await texto()
 checar('6 sem resultado com filtro: mensagem + limpar', tela.includes('Nenhuma solicitação encontrada') && tela.includes('Limpar filtros'))
@@ -119,5 +119,48 @@ checar('15 página inexistente: aviso claro em vez de tabela vazia', tela.includ
 t.simulacao.quando = () => null
 await clicar('Ir para a última página'); await pausa(900)
 checar('15 "Ir para a última página" recupera a lista', (await codigos()).length === 5 && (await rotuloPagina()).startsWith('Página 1 de'), `${(await codigos()).length} ${await rotuloPagina()}`)
+
+// ---------- estado da listagem na URL (link compartilhável, recarregar e "voltar") ----------
+const consulta = () => new URL(pagina.url()).search
+const valorDe = async (rotulo) => (await campo(rotulo)).evaluate((e) => e.value)
+await irParaLista()
+checar('16 lista sem filtros: a URL fica limpa', consulta() === '', consulta())
+await escolher('Status', 'aberto')
+checar('16 filtrar escreve na URL', consulta() === '?status=aberto', consulta())
+await digitar(await campo('Buscar pelo título'), 'nota')
+await pausa(900)
+checar('16 a busca também vai para a URL (e o campo mantém o texto digitado)', consulta() === '?busca=nota&status=aberto' && (await valorDe('Buscar pelo título')) === 'nota', `${consulta()} / ${await valorDe('Buscar pelo título')}`)
+checar('16 o padrão não polui a URL (nada de pagina=1 nem porPagina=10)', !/pagina=|porPagina=/.test(consulta()))
+
+await pagina.reload({ waitUntil: 'networkidle0' })
+await esperar(() => document.querySelector('tbody tr'))
+checar('17 recarregar a página mantém filtros, campos e resultado', JSON.stringify(await codigos()) === JSON.stringify(['#0009']) && (await valorDe('Status')) === 'aberto' && (await valorDe('Buscar pelo título')) === 'nota', `${JSON.stringify(await codigos())}`)
+
+await ir('/solicitacoes?status=concluido&porPagina=5')
+await esperar(() => document.querySelector('tbody tr'))
+checar('17 abrir um link já filtrado mostra a lista filtrada (como se fosse compartilhado)', JSON.stringify(await codigos()) === JSON.stringify(['#0003', '#0008', '#0007']) && (await valorDe('Status')) === 'concluido' && (await valorDe('Por página')) === '5', JSON.stringify(await codigos()))
+
+await pagina.evaluate(() => [...document.querySelectorAll('tbody a')][0].click())
+await esperar(() => /^\/solicitacoes\/\d+$/.test(location.pathname))
+await pagina.goBack({ waitUntil: 'networkidle0' })
+await esperar(() => document.querySelector('tbody tr'))
+checar('18 "voltar" dos detalhes devolve a lista exatamente como estava', consulta() === '?status=concluido&porPagina=5' && JSON.stringify(await codigos()) === JSON.stringify(['#0003', '#0008', '#0007']), `${consulta()} ${JSON.stringify(await codigos())}`)
+
+await ir('/solicitacoes?porPagina=5')
+await esperar(() => document.querySelector('tbody tr'))
+await clicar('Próxima'); await pausa(800)
+checar('18 trocar de página escreve na URL', consulta() === '?pagina=2&porPagina=5', consulta())
+await pagina.goBack({ waitUntil: 'networkidle0' }); await pausa(600)
+checar('18 "voltar" depois de trocar de página volta à página anterior', consulta() === '?porPagina=5' && (await rotuloPagina()) === 'Página 1 de 2', `${consulta()} ${await rotuloPagina()}`)
+
+await ir('/solicitacoes?status=xyz&categoria=Marketing&pagina=-3&porPagina=7&de=ontem&busca=')
+await esperar(() => document.querySelector('tbody tr'))
+tela = await texto()
+checar('19 link com valores inválidos abre a lista normal, sem erro', (await codigos()).length === 10 && (await rotuloPagina()) === 'Página 1 de 1' && !tela.includes('Não foi possível') && (await valorDe('Status')) === '', `${(await codigos()).length} ${await rotuloPagina()}`)
+
+await ir('/solicitacoes?status=aberto&categoria=TI&porPagina=5')
+await esperar(() => document.querySelector('tbody tr, [role=status]'))
+await clicar('Limpar filtros'); await pausa(700)
+checar('19 "Limpar filtros" tira os filtros da URL e mantém o tamanho da página', consulta() === '?porPagina=5', consulta())
 
 await t.finalizar()

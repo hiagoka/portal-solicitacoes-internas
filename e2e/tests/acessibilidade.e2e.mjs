@@ -2,7 +2,7 @@
 import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('acessibilidade', { largura: 1100, altura: 800 })
-const { pagina, checar, esperar, clicar, ir, entrar, sair, auditarAcessibilidade } = t
+const { pagina, checar, esperar, clicar, ir, entrar, sair, auditarAcessibilidade, digitar } = t
 
 async function definirTema(tema) {
   await pagina.evaluate((x) => {
@@ -30,8 +30,8 @@ async function auditarNosDoisTemas(nome) {
 // ---- tela de login (sem sessão)
 await ir('/login')
 await auditarNosDoisTemas('login')
-await pagina.type('input[autocomplete=username]', 'maria')
-await pagina.type('input[autocomplete=current-password]', 'errada')
+await digitar('input[autocomplete=username]', 'maria')
+await digitar('input[autocomplete=current-password]', 'errada')
 await pagina.click('button[type=submit]')
 await esperar(() => document.querySelector('[role=alert]'))
 await auditarNosDoisTemas('login com mensagem de erro')
@@ -45,7 +45,7 @@ await ir('/solicitacoes')
 await esperar(() => document.querySelector('tbody tr'))
 await auditarNosDoisTemas('listagem')
 
-await pagina.type('input[type=search]', 'zzzz-nao-existe')
+await digitar('input[type=search]', 'zzzz-nao-existe')
 await pausa(900)
 await auditarNosDoisTemas('listagem sem resultados')
 
