@@ -1,4 +1,4 @@
-import type { FiltrosSolicitacao, ListaPaginada, Solicitacao, SolicitacaoInput, Status } from '@/types'
+import type { EventoHistorico, FiltrosSolicitacao, ListaPaginada, Solicitacao, SolicitacaoInput, Status } from '@/types'
 import { http } from './httpClient'
 
 const BASE = '/solicitacoes'
@@ -11,6 +11,11 @@ export const solicitacaoService = {
   async obter(id: number): Promise<Solicitacao> {
     const { solicitacao } = await http.get<{ solicitacao: Solicitacao }>(`${BASE}/${id}`)
     return solicitacao
+  },
+
+  async historico(id: number): Promise<EventoHistorico[]> {
+    const { historico } = await http.get<{ historico: EventoHistorico[] }>(`${BASE}/${id}/historico`)
+    return historico
   },
 
   async criar(dados: SolicitacaoInput): Promise<Solicitacao> {

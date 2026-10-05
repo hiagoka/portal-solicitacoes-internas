@@ -31,6 +31,15 @@ export interface FiltrosSolicitacao {
   porPagina?: number
 }
 
+// Um registro do histórico de status. `statusAnterior` é nulo no evento de abertura.
+export interface EventoHistorico {
+  id: number
+  statusAnterior: Status | null
+  statusNovo: Status
+  criadoEm: string
+  usuario: { id: number; nome: string }
+}
+
 // Dados de navegação entre páginas, devolvidos junto com a lista.
 export interface Paginacao {
   pagina: number

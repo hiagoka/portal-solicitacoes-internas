@@ -1,6 +1,7 @@
 export { useAcoesDetalhes, useCriarSolicitacao, useEditarSolicitacao } from './useAcoesSolicitacao'
 export { OPCOES_POR_PAGINA, useFiltrosSolicitacoes } from './useFiltrosSolicitacoes'
 export { useFormularioSolicitacao } from './useFormularioSolicitacao'
+export { useHistorico } from './useHistorico'
 export { useSolicitacao } from './useSolicitacao'
 export { useSolicitacoes } from './useSolicitacoes'
 export { useIdDaRota } from './useIdDaRota'

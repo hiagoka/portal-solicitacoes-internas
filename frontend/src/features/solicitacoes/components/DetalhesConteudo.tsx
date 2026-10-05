@@ -7,6 +7,7 @@ import { useAcoesDetalhes } from '../hooks'
 import { podeEditarOuExcluir, podeMudarStatus } from '../utils/permissoes'
 import { DetalhesCard } from './DetalhesCard'
 import { ExcluirModal } from './ExcluirModal'
+import { HistoricoCard } from './HistoricoCard'
 import { StatusSelect } from './StatusSelect'
 
 type DetalhesConteudoProps = {
@@ -39,6 +40,7 @@ export function DetalhesConteudo({ solicitacao, aoAtualizar, recarregar }: Detal
       </div>
 
       <DetalhesCard solicitacao={solicitacao} />
+      <HistoricoCard solicitacaoId={solicitacao.id} atualizadoEm={solicitacao.atualizadoEm} />
 
       {podeMudarStatus(usuario, solicitacao) && (
         <StatusSelect statusAtual={solicitacao.status} alterando={alterandoStatus} onAlterar={mudarStatus} />
