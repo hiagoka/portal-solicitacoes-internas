@@ -6,12 +6,14 @@ const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').repla
 export class ApiError extends Error {
   readonly status: number
   readonly detalhes?: ErroCampo[]
+  readonly idRequisicao?: string
 
-  constructor(status: number, mensagem: string, detalhes?: ErroCampo[]) {
+  constructor(status: number, mensagem: string, detalhes?: ErroCampo[], idRequisicao?: string) {
     super(mensagem)
     this.name = 'ApiError'
     this.status = status
     this.detalhes = detalhes
+    this.idRequisicao = idRequisicao
   }
 }
 
@@ -62,7 +64,11 @@ async function requisitar<T>(metodo: Metodo, caminho: string, { body, query }: O
   if (!resposta.ok) {
     const erro = (dados ?? {}) as Partial<ErroApi>
     if (resposta.status === 401 && !ROTAS_SEM_AVISO_DE_SESSAO.includes(caminho)) aoExpirarSessao?.()
-    throw new ApiError(resposta.status, erro.erro ?? 'Ocorreu um erro inesperado.', erro.detalhes)
+    const mensagem = erro.erro ?? 'Ocorreu um erro inesperado.'
+    // Em falhas do SERVIDOR (5xx) o usuário não consegue corrigir nada, mas pode informar um código curto ao suporte, que o
+    // liga à linha do log. Em erros de cliente (4xx) a mensagem basta e o código só atrapalharia.
+    const codigo = resposta.status >= 500 && erro.idRequisicao ? ` (código ${erro.idRequisicao.slice(0, 8)})` : ''
+    throw new ApiError(resposta.status, `${mensagem}${codigo}`, erro.detalhes, erro.idRequisicao)
   }
 
   return dados as T

@@ -66,6 +66,25 @@ describe('httpClient', () => {
     expect(erro).toMatchObject({ status: 400, message: 'Dados inválidos', detalhes })
   })
 
+  // O ID da requisição liga o erro que o usuário viu à linha do log do servidor: com ele, o suporte acha a causa.
+  it('em erro 500, a mensagem inclui um código curto (do ID da requisição) para o usuário informar ao suporte', async () => {
+    fetchMock.mockResolvedValue(resposta(500, { erro: 'Erro interno do servidor', idRequisicao: '64f22dde-f7e2-4d41-985a-151f8b32c2be' }))
+    const erro = (await http.get('/solicitacoes').catch((e: unknown) => e)) as ApiError
+    expect(erro.message).toBe('Erro interno do servidor (código 64f22dde)')
+    expect(erro.idRequisicao).toBe('64f22dde-f7e2-4d41-985a-151f8b32c2be')
+  })
+
+  it('em erros de cliente (4xx) a mensagem não leva código (o usuário pode corrigir sozinho)', async () => {
+    fetchMock.mockResolvedValue(resposta(400, { erro: 'Dados inválidos', idRequisicao: '64f22dde-f7e2-4d41-985a-151f8b32c2be' }))
+    const erro = (await http.get('/solicitacoes').catch((e: unknown) => e)) as ApiError
+    expect(erro.message).toBe('Dados inválidos')
+  })
+
+  it('erro 500 sem ID (resposta antiga ou de um proxy) continua com a mensagem simples', async () => {
+    fetchMock.mockResolvedValue(resposta(500, { erro: 'Erro interno do servidor' }))
+    expect(((await http.get('/x').catch((e: unknown) => e)) as ApiError).message).toBe('Erro interno do servidor')
+  })
+
   it('usa uma mensagem padrão quando o erro não vem em JSON', async () => {
     fetchMock.mockResolvedValue(new Response('<html>Bad Gateway</html>', { status: 502 }))
     const erro = await http.get('/dashboard').catch((e) => e)

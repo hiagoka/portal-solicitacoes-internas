@@ -8,4 +8,6 @@ export interface ErroCampo {
 export interface ErroApi {
   erro: string
   detalhes?: ErroCampo[]
+  /** ID da requisição, presente nos erros 500: liga o erro ao log do servidor. */
+  idRequisicao?: string
 }
