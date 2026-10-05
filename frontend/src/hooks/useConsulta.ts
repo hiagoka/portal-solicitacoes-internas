@@ -6,6 +6,8 @@ type Resultado<T> = { chave: string; dados: T | null; erro: Error | null }
 type Opcoes = {
   /** Mensagem usada quando a falha não é um erro da API (ex.: bug inesperado). */
   mensagemErro?: string
+  /** `false` = não buscar (ex.: o código da URL é inválido). Devolve `carregando: false` e sem dados. */
+  habilitada?: boolean
   /** Enquanto uma nova busca roda, continua devolvendo os dados da anterior (a tela pode esmaecê-los). */
   manterAnterior?: boolean
 }
@@ -16,7 +18,7 @@ type Opcoes = {
 // Assim não há `setState` síncrono dentro do efeito, e a resposta de uma busca antiga que chega atrasada
 // (digitou "a", depois "ab") é descartada em vez de sobrescrever a mais nova.
 export function useConsulta<T>(chave: string, buscar: () => Promise<T>, opcoes: Opcoes = {}) {
-  const { mensagemErro = 'Não foi possível carregar os dados.', manterAnterior = false } = opcoes
+  const { mensagemErro = 'Não foi possível carregar os dados.', manterAnterior = false, habilitada = true } = opcoes
   const [resultado, setResultado] = useState<Resultado<T> | null>(null)
   const [tentativa, setTentativa] = useState(0)
   const chaveCompleta = `${chave}#${tentativa}`
@@ -28,6 +30,7 @@ export function useConsulta<T>(chave: string, buscar: () => Promise<T>, opcoes: 
   })
 
   useEffect(() => {
+    if (!habilitada) return
     let obsoleta = false
     buscarRef
       .current()
@@ -40,7 +43,7 @@ export function useConsulta<T>(chave: string, buscar: () => Promise<T>, opcoes: 
     return () => {
       obsoleta = true
     }
-  }, [chaveCompleta, mensagemErro])
+  }, [chaveCompleta, mensagemErro, habilitada])
 
   const recarregar = useCallback(() => setTentativa((n) => n + 1), [])
 
@@ -51,6 +54,7 @@ export function useConsulta<T>(chave: string, buscar: () => Promise<T>, opcoes: 
   )
 
   const atual = resultado?.chave === chaveCompleta
+  if (!habilitada) return { dados: null, carregando: false, erro: null, recarregar, substituir }
   return {
     dados: atual || manterAnterior ? (resultado?.dados ?? null) : null,
     carregando: !atual,

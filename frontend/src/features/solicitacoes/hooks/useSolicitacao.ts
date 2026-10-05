@@ -6,7 +6,8 @@ export function useSolicitacao(id: number) {
   const { dados, carregando, erro, recarregar, substituir } = useConsulta(
     String(id),
     () => solicitacaoService.obter(id),
-    { mensagemErro: 'Não foi possível carregar a solicitação.' },
+    // Um código que não é número inteiro positivo (ex.: /solicitacoes/abc) nunca existe: nem consulta a API.
+    { mensagemErro: 'Não foi possível carregar a solicitação.', habilitada: Number.isInteger(id) && id > 0 },
   )
 
   return {
