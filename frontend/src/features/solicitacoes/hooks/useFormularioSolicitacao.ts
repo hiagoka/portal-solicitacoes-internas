@@ -20,11 +20,20 @@ export function useFormularioSolicitacao(
     setErros((atuais) => ({ ...atuais, [campo]: undefined })) // o erro some quando o usuário corrige
   }
 
+  // Leva o foco ao primeiro campo com erro (na ordem da tela). Sem isto, quem usa teclado ou leitor de tela continua no botão
+  // "Enviar" e não percebe onde está o problema. O `form` é capturado antes de qualquer `await` (depois dele o evento já não o tem).
+  function focarPrimeiroComErro(form: HTMLFormElement, comErro: ErrosFormulario) {
+    const primeiro = (['titulo', 'categoria', 'descricao'] as const).find((campo) => comErro[campo])
+    if (primeiro) queueMicrotask(() => (form.elements.namedItem(primeiro) as HTMLElement | null)?.focus())
+  }
+
   async function enviar(evento: FormEvent) {
     evento.preventDefault()
+    const form = evento.currentTarget as HTMLFormElement
     const encontrados = validarSolicitacao(valores)
     if (Object.keys(encontrados).length > 0) {
       setErros(encontrados)
+      focarPrimeiroComErro(form, encontrados)
       return
     }
 
@@ -39,7 +48,9 @@ export function useFormularioSolicitacao(
     } catch (e) {
       if (e instanceof ApiError && e.detalhes?.length) {
         // A API também valida: mostra cada mensagem no campo correspondente.
-        setErros(Object.fromEntries(e.detalhes.map((d) => [d.campo, d.mensagem])))
+        const doServidor: ErrosFormulario = Object.fromEntries(e.detalhes.map((d) => [d.campo, d.mensagem]))
+        setErros(doServidor)
+        focarPrimeiroComErro(form, doServidor)
       } else {
         setErroGeral(e instanceof ApiError ? e.message : 'Não foi possível salvar. Tente novamente.')
       }

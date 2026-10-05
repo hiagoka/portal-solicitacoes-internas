@@ -3,6 +3,8 @@ import { CATEGORIAS_LISTA, CATEGORIA_LABEL } from '@/constants'
 import type { Categoria, SolicitacaoInput } from '@/types'
 import { useFormularioSolicitacao } from '../hooks'
 import { LIMITE_DESCRICAO, LIMITE_TITULO } from '../utils/validacao'
+import { idDoCampo } from '../utils/idDoCampo'
+import { ResumoDeErros } from './ResumoDeErros'
 
 type SolicitacaoFormProps = {
   /** Valores iniciais (edição). Sem eles, o formulário começa vazio (criação). */
@@ -20,7 +22,10 @@ export function SolicitacaoForm({ inicial, textoEnviar, onSubmit, onCancelar }: 
   return (
     <Card padding="lg">
       <form onSubmit={enviar} noValidate className="flex flex-col gap-5">
+        <ResumoDeErros erros={erros} />
         <Input
+          id={idDoCampo('titulo')}
+          name="titulo"
           label="Título"
           value={valores.titulo}
           onChange={(e) => alterar('titulo', e.target.value)}
@@ -30,6 +35,8 @@ export function SolicitacaoForm({ inicial, textoEnviar, onSubmit, onCancelar }: 
           required
         />
         <Select
+          id={idDoCampo('categoria')}
+          name="categoria"
           label="Categoria"
           placeholder="Selecione..."
           options={OPCOES_CATEGORIA}
@@ -39,6 +46,8 @@ export function SolicitacaoForm({ inicial, textoEnviar, onSubmit, onCancelar }: 
           required
         />
         <Textarea
+          id={idDoCampo('descricao')}
+          name="descricao"
           label="Descrição"
           rows={6}
           value={valores.descricao}

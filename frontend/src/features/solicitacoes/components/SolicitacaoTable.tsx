@@ -20,6 +20,7 @@ export function SolicitacaoTable({ solicitacoes }: { solicitacoes: Solicitacao[]
 
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[40rem] text-left text-sm">
+          <caption className="sr-only">Lista de solicitações</caption>
           <thead className="border-b border-border text-xs uppercase tracking-wide text-textMuted">
             <tr>
               {COLUNAS.map((coluna) => (
