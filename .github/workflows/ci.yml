@@ -106,6 +106,11 @@ jobs:
           API_URL: http://localhost:8080/api
           CHROME_PATH: /usr/bin/google-chrome
         run: bash run.sh
+      - name: O nginx acompanha a recriação do backend (outro IP) sem reiniciar
+        # Roda DEPOIS dos testes de navegador, para uma falha de infraestrutura não mascarar os de aplicação.
+        env:
+          FRONTEND_URL: http://localhost:8080
+        run: bash e2e/infra/recriar-backend.sh
       - name: Logs dos contêineres (se algo falhou)
         if: failure()
         run: docker compose logs --no-color --tail 200
