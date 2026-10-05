@@ -168,8 +168,7 @@ Abra **http://localhost:5173** e entre com um dos [usuários de teste](#usuário
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `FRONTEND_PORT` | `8080` | Porta da interface no seu computador |
-| `BACKEND_PORT` | `3000` | Porta da API no seu computador |
+| `FRONTEND_PORT` | `8080` | Porta da interface no seu computador (a API só é alcançável por ela, em `/api`) |
 | `POSTGRES_PASSWORD` | `portal_demo_password` | Senha do banco (evite caracteres especiais) |
 | `JWT_SECRET` | segredo de demonstração | **Troque fora da demonstração** |
 | `JWT_EXPIRES_IN` | `8h` | Validade da sessão |
@@ -208,7 +207,7 @@ Três camadas, da mais barata à mais completa:
 
 ## API
 
-Base: `http://localhost:3000` (no Docker, também em `/api` pela porta da interface). Todas as rotas, exceto
+Base: `http://localhost:3000` em desenvolvimento manual; no Docker a API não é publicada e fica em `/api` pela porta da interface (`http://localhost:8080/api`). Todas as rotas, exceto
 `/health` e `/auth/login`, exigem o cookie de sessão. Respostas de erro seguem o formato
 `{ "erro": "mensagem", "detalhes": [{ "campo": "...", "mensagem": "..." }] }`.
 
@@ -293,7 +292,7 @@ Detalhadas e discutidas no memorial (seção de análise crítica). As principai
 
 | Sintoma | Causa e solução |
 |---|---|
-| `port is already allocated` / `Bind for 0.0.0.0:8080 failed` | A porta 8080 está em uso. Use `FRONTEND_PORT=8081 docker compose up --build` (e `BACKEND_PORT` para a API) |
+| `port is already allocated` / `Bind for 0.0.0.0:8080 failed` | A porta 8080 está em uso. Use `FRONTEND_PORT=8081 docker compose up --build` |
 | `database "portal" does not exist` ao rodar os scripts | O PostgreSQL ainda está iniciando. Aguarde alguns segundos e repita |
 | API responde `500` logo após subir, sem Docker | Os scripts `schema.sql` e `seed.sql` ainda não foram executados no banco apontado por `DATABASE_URL` |
 | `Variáveis de ambiente inválidas` ao iniciar o backend | Falta `DATABASE_URL` ou `JWT_SECRET` (mín. 16 caracteres) no `backend/.env` |
