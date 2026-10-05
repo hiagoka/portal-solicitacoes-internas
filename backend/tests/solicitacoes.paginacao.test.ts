@@ -5,14 +5,21 @@ import { loginComo, resetarBanco } from './helpers';
 //  atendente (10): 6, 1, 4, 2, 5, 10, 9, 3, 8, 7        maria (5): 1, 2, 9, 3, 8
 type Quem = 'maria' | 'joao' | 'atendente';
 
+// Reaproveita a sessão: cada login faz um bcrypt (~100 ms), e o teste que junta todas as páginas fazia quatro.
+const sessoes = new Map<Quem, Awaited<ReturnType<typeof loginComo>>>();
+
 async function pagina(usuario: Quem, params: Record<string, string> = {}) {
-  const agente = await loginComo(usuario);
+  let agente = sessoes.get(usuario);
+  if (!agente) sessoes.set(usuario, (agente = await loginComo(usuario)));
   const res = await agente.get('/solicitacoes').query(params);
   return { status: res.status, ids: (res.body.solicitacoes ?? []).map((s: { id: number }) => s.id) as number[], paginacao: res.body.paginacao, body: res.body };
 }
 
 describe('GET /solicitacoes — paginação', () => {
-  beforeEach(resetarBanco);
+  beforeEach(async () => {
+    await resetarBanco();
+    sessoes.clear(); // o banco foi recriado: as sessões antigas apontam para usuários que já não são os mesmos registros
+  });
 
   it('sem parâmetros: primeira página com 10 por página e os dados de navegação', async () => {
     const { ids, paginacao } = await pagina('atendente');
