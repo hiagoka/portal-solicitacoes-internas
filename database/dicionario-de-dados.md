@@ -39,12 +39,22 @@ Demandas internas registradas pelos colaboradores.
 | `status` | VARCHAR(20) | sim | `aberto` | `aberto`, `em_atendimento` ou `concluido` |
 | `criado_em` | TIMESTAMPTZ | sim | `NOW()` | Data de abertura (automática) |
 | `atualizado_em` | TIMESTAMPTZ | sim | `NOW()` | Última alteração. A aplicação atualiza a cada edição ou mudança de status |
+| `excluido_em` | TIMESTAMPTZ | não | `NULL` | **Exclusão lógica.** `NULL` = solicitação ativa; preenchido = excluída (ver abaixo) |
 | `usuario_id` | INTEGER (FK) | sim | — | Solicitante. Referencia `usuarios.id` |
 
 **Regras:**
 - `categoria` restrita aos 5 valores (CHECK `solicitacoes_categoria_valida`).
 - `status` restrito aos 3 valores (CHECK `solicitacoes_status_valido`).
 - `usuario_id` precisa existir em `usuarios`; o banco recusa referências inválidas.
+
+### Exclusão lógica
+
+Excluir uma solicitação **não apaga a linha**: a API preenche `excluido_em` com a data e hora da exclusão. A partir daí ela
+deixa de aparecer em qualquer consulta da aplicação (listagem, detalhes, busca, contagens do dashboard e totais da
+paginação), e não pode mais ser editada, excluída de novo nem ter o status alterado (a API responde 404). O registro
+permanece no banco como trilha de auditoria, e o código (`id`) nunca é reaproveitado.
+
+Para consultar as excluídas diretamente no banco: `SELECT * FROM solicitacoes WHERE excluido_em IS NOT NULL;`
 
 ## Índices
 
@@ -57,7 +67,7 @@ Demandas internas registradas pelos colaboradores.
 
 ## Regras de negócio aplicadas pela API (não pelo banco)
 
-- Só é possível **editar ou excluir** uma solicitação com status `aberto`, e apenas pelo autor.
+- Só é possível **editar ou excluir** uma solicitação com status `aberto`, e apenas pelo autor. A exclusão é lógica (preenche `excluido_em`).
 - Só o perfil `atendente` altera o status.
 - O solicitante enxerga apenas as próprias solicitações; o atendente enxerga todas.
 - `status` inicial e `usuario_id` são definidos pelo servidor, nunca enviados pelo cliente.

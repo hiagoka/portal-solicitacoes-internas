@@ -25,6 +25,7 @@ CREATE TABLE solicitacoes (
     status         VARCHAR(20)  NOT NULL DEFAULT 'aberto',
     criado_em      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),   -- data de abertura (automática)
     atualizado_em  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    excluido_em    TIMESTAMPTZ,                           -- exclusão lógica: preenchido = excluída (a linha permanece)
     usuario_id     INTEGER      NOT NULL REFERENCES usuarios (id),  -- quem abriu (chave estrangeira)
 
     CONSTRAINT solicitacoes_categoria_valida
