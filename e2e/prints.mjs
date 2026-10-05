@@ -50,6 +50,10 @@ await clicar('Excluir'); await pausa(400)
 await foto('09-confirmacao-de-exclusao')
 await pagina.keyboard.press('Escape'); await pausa(200)
 
+// 21 — histórico de status (solicitação concluída: três eventos)
+await ir('/solicitacoes/3'); await esperar(() => document.querySelectorAll('ol[aria-label="Histórico de status"] li').length === 3)
+await foto('21-historico-de-status', { fullPage: true })
+
 // 10 — solicitação em atendimento (sem editar/excluir)
 await ir('/solicitacoes/2'); await esperar(() => document.body.innerText.includes('Acesso ao sistema'))
 await foto('10-solicitacao-em-atendimento-somente-leitura')
