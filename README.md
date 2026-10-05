@@ -91,8 +91,11 @@ O que sobe: `db` (PostgreSQL, inicializado automaticamente pelos scripts de [`da
 Não é preciso criar o arquivo `.env`: todos os valores têm padrões de demonstração. Para personalizá-los, copie
 [`.env.example`](.env.example) para `.env` (veja [Configuração](#configuração)).
 
-> Os segredos padrão (senha do banco e `JWT_SECRET`) servem apenas para demonstração. Em qualquer ambiente real,
-> defina valores próprios (por exemplo, `openssl rand -hex 32`).
+> Os segredos padrão (senha do banco e `JWT_SECRET`) são **públicos**: qualquer pessoa que leia este repositório pode usá-los
+> para forjar uma sessão (inclusive a do atendente). Servem apenas para demonstração, e a API avisa disso no log ao iniciar.
+> Em qualquer ambiente real, defina valores próprios (por exemplo, `openssl rand -hex 32`), coloque
+> `PERMITIR_SEGREDOS_DE_DEMONSTRACAO=false` e sirva por HTTPS com `COOKIE_SECURE=true`: com o segredo de demonstração e sem essa
+> autorização, a API se recusa a iniciar em produção.
 
 ## Como executar sem Docker (instalação manual)
 
@@ -158,6 +161,7 @@ Abra **http://localhost:5173** e entre com um dos [usuários de teste](#usuário
 | `JWT_EXPIRES_IN` | `8h` | Validade da sessão |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origem do frontend autorizada a chamar a API |
 | `COOKIE_SECURE` | `false` | `true` somente quando servido por HTTPS |
+| `PERMITIR_SEGREDOS_DE_DEMONSTRACAO` | `false` | Em `NODE_ENV=production`, a API **recusa partir** com um segredo de demonstração publicado no repositório (como o do `.env.example`), salvo com `true`. O `docker-compose.yml` de demonstração o liga e a API mostra um aviso no log |
 | `TRUST_PROXY` | `false` | `true` somente atrás de um proxy reverso confiável (o `docker-compose.yml` já define) |
 | `NODE_ENV` | `development` | `development`, `test` ou `production` |
 

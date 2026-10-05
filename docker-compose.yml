@@ -33,6 +33,10 @@ services:
       DATABASE_URL: postgres://portal:${POSTGRES_PASSWORD:-portal_demo_password}@db:5432/portal
       # Troque em qualquer ambiente real. O padrão existe só para a demonstração funcionar sem configuração.
       JWT_SECRET: ${JWT_SECRET:-segredo-de-demonstracao-troque-em-producao}
+      # Autoriza o segredo de DEMONSTRAÇÃO acima em NODE_ENV=production (sem isso a API recusa partir). Existe só para o
+      # `docker compose up` funcionar sem configuração; a API mostra um aviso no log. AO PUBLICAR DE VERDADE: defina JWT_SECRET
+      # próprio (openssl rand -hex 32), remova esta linha e use HTTPS com COOKIE_SECURE=true.
+      PERMITIR_SEGREDOS_DE_DEMONSTRACAO: ${PERMITIR_SEGREDOS_DE_DEMONSTRACAO:-true}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}   # true somente quando houver HTTPS
       TRUST_PROXY: "true"                       # há um nginx na frente
