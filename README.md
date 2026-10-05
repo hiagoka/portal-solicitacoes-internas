@@ -190,9 +190,9 @@ Três camadas, da mais barata à mais completa:
 
 | Camada | Quantidade | Como rodar |
 |---|---|---|
-| **Backend** (Vitest + Supertest, contra um PostgreSQL real) | 116 testes | `cd backend && npm test` |
+| **Backend** (Vitest + Supertest, contra um PostgreSQL real) | 134 testes | `cd backend && npm test` |
 | **Frontend** (Vitest: regras, validação, formatação, cliente HTTP, contraste da paleta) | 67 testes | `cd frontend && npm test` |
-| **Ponta a ponta** (Chrome real: autenticação, listagem, CRUD, dashboard, acessibilidade, responsividade) | 156 verificações | `cd e2e && npm ci && bash run.sh` |
+| **Ponta a ponta** (Chrome real: autenticação, listagem, CRUD, dashboard, acessibilidade, responsividade) | 160 verificações | `cd e2e && npm ci && bash run.sh` |
 
 - **Backend:** precisa de um PostgreSQL acessível. Por padrão usa `postgres://postgres:postgres@localhost:5432/portal_test`
   (o banco `portal_test` é criado automaticamente e recriado a cada teste; **nunca** é o banco de desenvolvimento).
@@ -267,10 +267,10 @@ Códigos usados: `400` dados inválidos, `401` não autenticado, `403` sem permi
 
 O workflow [`ci.yml`](.github/workflows/ci.yml) roda a cada push na `main` e em pull requests:
 
-1. **Backend:** verificação de tipos, build e 116 testes contra um PostgreSQL de serviço.
+1. **Backend:** verificação de tipos, build e 134 testes contra um PostgreSQL de serviço.
 2. **Frontend:** tipos, lint, regra de cores, 67 testes e build.
 3. **Ponta a ponta:** só se os dois anteriores passarem. Sobe o sistema com Docker Compose e executa as 6 suítes no navegador
-   (156 verificações); em caso de falha, anexa logs e capturas de tela.
+   (160 verificações); em caso de falha, anexa logs e capturas de tela.
 
 ## Documentação complementar
 

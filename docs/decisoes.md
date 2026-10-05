@@ -257,7 +257,7 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 ## 054 — `TRUST_PROXY` para o rate limit enxergar o cliente real
 - **Decisão:** variável `TRUST_PROXY` (padrão `false`; `true` no compose) liga `app.set('trust proxy', 1)`.
 - **Motivo:** atrás do nginx todas as requisições chegam do IP do proxy; sem isso o limite de tentativas de login seria compartilhado por todos os usuários. Com 1 salto confiável, o Express usa o IP que o **nginx** viu, e não o que o cliente declara.
-- **Verificado:** enviando 11 senhas erradas com um `X-Forwarded-For` diferente a cada tentativa, a 11ª recebeu 429, ou seja, forjar o cabeçalho não contorna o limite.
+- **Verificado:** enviando 11 senhas erradas com um `X-Forwarded-For` diferente a cada tentativa, a 11ª recebeu 429, ou seja, forjar o cabeçalho não contorna o limite. **Ressalva (decisão 067):** isso valia apenas pelo nginx; com a porta da API publicada no host, o cabeçalho podia ser forjado direto.
 
 ## 055 — Imagens multi-stage enxutas e sem privilégios de root
 - **Decisão:** backend e frontend usam build em dois estágios. O backend final contém só dependências de produção e o JS compilado, e roda como o usuário `node`. O frontend final é apenas nginx + arquivos estáticos (sem Node). `.dockerignore` evita copiar `node_modules`, `.env` e testes.
@@ -325,3 +325,16 @@ Base do Memorial Técnico. Uma entrada por decisão relevante: contexto, decisã
 - **Decisão:** nada foi documentado de memória. O README só descreve comandos que foram **executados** numa cópia limpa do repositório (instalação manual nas portas padrão, Docker a partir de um clone, testes com o padrão `postgres/postgres@localhost:5432`); o memorial foi escrito a partir do registro de decisões e dos números medidos (testes, linhas, tamanho do *bundle*, tempo de subida); os links relativos e âncoras são checados por um script; e as 20 capturas de tela são geradas por `e2e/prints.mjs` contra o sistema real, podendo ser refeitas quando a interface mudar.
 - **O que isso encontrou:** os padrões de conexão do `.env.example` e dos testes apontavam para a porta 5433 (a do meu contêiner de desenvolvimento) e foram trocados pelos convencionais; uma corrida do `pg_isready` com a criação do banco no contêiner virou um aviso na seção de solução de problemas; e o memorial tinha números imprecisos (13 telas auditadas, não 14; testes de navegador levam alguns minutos, não 1) corrigidos na revisão.
 - **Motivo:** um avaliador executa o que está escrito; instrução que nunca foi executada costuma estar errada.
+
+## 067 — Revisão de código final: dez achados, todos reproduzidos antes de corrigir
+- **Contexto:** depois da entrega, uma revisão de código independente (leitura do código, sem executá-lo) apontou 10 pontos. **Nenhum foi aceito sem ser reproduzido**: seis foram confirmados executando a API (ou o Chrome), quatro por leitura do código. Para cada um, o teste foi escrito primeiro e visto falhar; só depois veio a correção e o teste passou (vermelho → verde). No frontend, os testes de navegador novos foram também executados contra o código antigo para provar que pegam o defeito.
+- **Achados e correções:**
+  1. *API caía com conexão ociosa derrubada pelo banco:* `pool.on('error')`; teste de integração que derruba as conexões e exige que a API continue respondendo.
+  2. *Rate limit burlável pela porta 3000:* o compose não publica mais a API (só o nginx a alcança) e o CI falha se a porta ficar acessível. Reproduzido antes (12 tentativas com IP forjado, sem 429) e depois (porta recusa conexão; limite segura pelo nginx).
+  3. *Erros 500 por entrada hostil:* código maior que o INTEGER do banco (agora 400), data com ano `0000` (400), caractere nulo em textos (400) e corpo acima de 100 kb ou charset/encoding desconhecido (413/415, com mensagens em português).
+  4. *Logout falho fingia sucesso:* o logout só conclui quando o servidor confirma; em falha, mostra um aviso e mantém o usuário logado (um 401 conta como sucesso, pois a sessão já expirara).
+  5. *Encerramento da API sem tempo limite:* conexões ociosas são fechadas, há limite de 10 s e erro ao fechar o pool é tratado (medido: 52 ms com uma conexão keep-alive aberta).
+  6. *Consulta inútil com código inválido* (`/solicitacoes/abc` pedia `/solicitacoes/NaN`): `useConsulta` ganhou a opção `habilitada`.
+  7. *E2E: `diasAtras` em UTC* errava entre 21h e 23h59 de Brasília; passou a usar o dia de Brasília, como o app.
+- **Efeito nos números:** backend de 116 para 134 testes; E2E de 156 para 160 verificações.
+- **Lição:** a minha suíte de 116 testes não pegou nada disso porque cobria o caminho feliz e os erros previstos, não entradas hostis nem falhas de infraestrutura. Revisão por outro par de olhos e testes de "o que acontece se..." (banco que cai, entrada absurda) valem tanto quanto os testes dos fluxos normais.

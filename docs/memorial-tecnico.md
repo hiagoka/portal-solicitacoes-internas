@@ -53,7 +53,7 @@ e **justificar as escolhas**.
 |---|---|
 | Código de produção (backend + frontend + SQL) | ≈ 3.500 linhas |
 | Código de teste (backend, frontend e E2E) | ≈ 1.900 linhas |
-| Testes automatizados | 116 (API) + 67 (frontend) + 156 verificações em navegador real |
+| Testes automatizados | 134 (API) + 67 (frontend) + 160 verificações em navegador real |
 | Commits | cerca de 170, em padrão *Conventional Commits* |
 | Decisões documentadas | 65 |
 
@@ -76,8 +76,8 @@ e **justificar as escolhas**.
 | Build/dev frontend | Vite | 8.3 | Servidor de desenvolvimento e empacotamento |
 | Estilo | Tailwind CSS | 4.3 | Estilização por utilitários, lendo o tema único |
 | Roteamento | React Router | 8.4 | Navegação, rotas protegidas |
-| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 116 testes de API, 67 de frontend |
-| Testes (navegador) | `puppeteer-core`, axe-core | 24.43 / 4.13 | 156 verificações, incluindo acessibilidade |
+| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 134 testes de API, 67 de frontend |
+| Testes (navegador) | `puppeteer-core`, axe-core | 24.43 / 4.13 | 160 verificações, incluindo acessibilidade |
 | Qualidade estática | `tsc` (modo estrito), oxlint | — / 1.81 | Tipos e lint |
 | Containerização | Docker, Docker Compose | — | Empacotamento e orquestração |
 | Servidor web | nginx | 1.27 | Serve a interface e faz proxy reverso de `/api` |
@@ -360,7 +360,9 @@ hook genérico `useConsulta` foi extraído quando o terceiro hook de busca ia re
 4. No frontend, o token é inacessível ao JavaScript. A aplicação sabe se há sessão perguntando a `GET /auth/me` ao abrir.
    Qualquer `401` em rota protegida derruba o usuário ao login.
 5. O limite de tentativas conta só as **falhas** (10 por IP a cada 15 minutos) e respeita o IP real atrás do nginx
-   (`TRUST_PROXY`, decisão 054): forjar o cabeçalho `X-Forwarded-For` não contorna o limite (verificado).
+   (`TRUST_PROXY`, decisão 054). Forjar o cabeçalho `X-Forwarded-For` não contorna o limite **porque o único caminho até a API é
+   o nginx**, que registra o IP real: o compose não publica a porta da API e o CI falha se ela ficar exposta. Uma revisão de
+   código final mostrou que, com a porta publicada, o limite seria burlável (decisão 067).
 
 **Autorização** é em duas camadas, com responsabilidades distintas (decisão 014):
 
@@ -421,16 +423,17 @@ A estrutura completa está no [README](../README.md#estrutura-do-projeto). Princ
 | Camada | O que cobre | Quantidade | Onde roda |
 |---|---|---|---|
 | Unitária (frontend) | Regras puras: permissões, validação, formatação, cliente HTTP, **contraste da paleta** | 67 | CI |
-| Integração (backend) | A API de ponta a ponta (HTTP → regra → SQL → PostgreSQL **real**): permissões por perfil, transições, concorrência, filtros, paginação, validação | 116 | CI, com PostgreSQL de serviço |
-| Ponta a ponta (navegador) | Fluxos reais em um Chrome real: autenticação, listagem, CRUD, dashboard, **acessibilidade (axe-core)** e **responsividade** | 156 verificações / 6 suítes | CI, contra o Docker Compose |
+| Integração (backend) | A API de ponta a ponta (HTTP → regra → SQL → PostgreSQL **real**): permissões por perfil, transições, concorrência, filtros, paginação, validação | 134 | CI, com PostgreSQL de serviço |
+| Ponta a ponta (navegador) | Fluxos reais em um Chrome real: autenticação, listagem, CRUD, dashboard, **acessibilidade (axe-core)** e **responsividade** | 160 verificações / 6 suítes | CI, contra o Docker Compose |
 
 O banco dos testes é separado do de desenvolvimento, criado automaticamente e recriado a cada teste com os **mesmos scripts SQL**
 do sistema, o que valida também o `schema.sql` e o `seed.sql`.
 
 ### 5.2 Defeitos reais que os testes acharam
 
-Nenhum destes foi percebido por inspeção do código ou por teste manual; todos vieram de testes automatizados, em geral da camada
-mais externa. A tabela mostra por que cada camada importa.
+Os dez primeiros vieram de testes automatizados, em geral da camada mais externa; os quatro últimos, de uma **revisão de código
+independente** feita ao final (decisão 067), e cada um foi reproduzido antes de ser corrigido. A tabela mostra por que cada
+camada, inclusive a revisão por outro par de olhos, importa.
 
 | # | O que aconteceu | Como foi achado | Correção |
 |---|---|---|---|
@@ -444,8 +447,12 @@ mais externa. A tabela mostra por que cada camada importa.
 | 8 | Login sem `<main>`, título fora de ordem, página 404 sem `h1` | axe-core | marcação corrigida |
 | 9 | Botão de tema espremido em ~8 px por conflito de classes do Tailwind (`px-0` contra `px-4`) | inspeção de uma captura de tela | modo `iconOnly` no `Button` (decisão 064) |
 | 10 | Filtro de período falhou **apenas no CI** (campo de data depende do idioma do navegador) | primeiro CI real | datas preenchidas pelo valor interno, não digitadas (decisão 059) |
+| 11 | A **API inteira caía** se o banco reiniciasse ou derrubasse uma conexão ociosa: o pool não tinha ouvinte do evento `error` | revisão de código; reproduzido derrubando as conexões | `pool.on('error')` e um teste que derruba as conexões e exige que a API continue (decisão 067) |
+| 12 | **Limite de login burlável** pela porta 3000 publicada no compose combinada com `TRUST_PROXY` | revisão de código; reproduzido (12 tentativas com IP forjado, nenhum 429) | a API deixa de ser publicada; o CI verifica que a 3000 está fechada |
+| 13 | Entradas hostis viravam **erro 500**: código acima do INTEGER, data com ano `0000`, caractere nulo `\u0000`, corpo acima de 100 kb | revisão de código; os 4 reproduzidos | validação no Zod, 413/415 no tratador de erros e 16 testes de entradas inválidas |
+| 14 | "Sair" com a API fora do ar **fingia** ter saído (cookie ainda válido) e `/solicitacoes/abc` consultava a API à toa | revisão de código; testes E2E vermelhos antes e verdes depois | o logout só conclui quando o servidor confirma; `useConsulta` ganhou a opção `habilitada` |
 
-Aprendizados: (a) o teste de ponta a ponta é o que encontra defeitos de integração; (b) rodar em ambiente limpo e diferente do
+Aprendizados: (a) o teste de ponta a ponta é o que encontra defeitos de integração; (d) uma revisão independente encontra o que testes escritos pelo mesmo autor não alcançam (entradas hostis, falhas de infraestrutura e configuração insegura de implantação), e o resultado da revisão deve ser reproduzido antes de ser aceito; (b) rodar em ambiente limpo e diferente do
 da máquina de desenvolvimento (outro Node, outro idioma) encontra o que o local esconde; (c) ferramentas automáticas não
 substituem olhar o resultado (item 9).
 
