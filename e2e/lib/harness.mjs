@@ -2,6 +2,7 @@
 // os gestos comuns (entrar, sair, clicar por rótulo, preencher campo pelo <label>...).
 import { mkdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { pastaDeSaida } from './caminhos.mjs'
 import puppeteer from 'puppeteer-core'
 
 // Configuração por variáveis de ambiente (os padrões servem ao ambiente de desenvolvimento local).
@@ -9,7 +10,7 @@ export const APP_URL = (process.env.APP_URL ?? 'http://localhost:5173').replace(
 // Endereço da API como o NAVEGADOR a enxerga (no Docker é "<app>/api", via nginx).
 export const API_URL = (process.env.API_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 const CHROME_PATH = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const SAIDA = process.env.E2E_OUT ?? new URL('../resultados/', import.meta.url).pathname
+const SAIDA = process.env.E2E_OUT ?? pastaDeSaida(import.meta.url)
 
 const AXE_FONTE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 
