@@ -1,6 +1,9 @@
 import { app } from './app';
-import { env } from './config/env';
+import { avisosDeConfiguracao, env } from './config/env';
 import { pool } from './config/database';
+
+// Situações perigosas que não impedem a partida (ex.: segredo de demonstração em produção) ficam visíveis no log.
+for (const aviso of avisosDeConfiguracao) console.warn(aviso);
 
 const servidor = app.listen(env.PORT, () => {
   console.log(`API rodando em http://localhost:${env.PORT}`);
