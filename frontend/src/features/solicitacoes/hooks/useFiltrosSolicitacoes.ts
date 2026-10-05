@@ -1,38 +1,40 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useSearchParams } from 'react-router'
 import { useDebounce } from '@/hooks'
 import type { FiltrosSolicitacao } from '@/types'
+import { estadoPadrao, lerEstadoDaUrl, paraParametrosDaUrl, type CamposDeFiltro, type EstadoDaLista } from '../utils/filtrosUrl'
 
-type CamposDeFiltro = Omit<FiltrosSolicitacao, 'pagina' | 'porPagina'>
+export { OPCOES_POR_PAGINA } from '../utils/filtrosUrl'
 
-const VAZIO: CamposDeFiltro = { busca: '', status: '', categoria: '', de: '', ate: '' }
-export const OPCOES_POR_PAGINA = [5, 10, 20, 50] as const
-const POR_PAGINA_PADRAO = 10
-
-// Estado dos filtros e da paginação da listagem. Devolve dois conjuntos:
+// Filtros e paginação da listagem. A URL é a fonte da verdade: o estado é lido dela e toda mudança a reescreve.
+// Efeitos: o link da lista filtrada pode ser copiado e compartilhado; recarregar a página mantém tudo; e o botão
+// "voltar" depois de abrir uma solicitação devolve a lista exatamente como estava.
+//
+// Devolve dois conjuntos:
 //  - `filtros`: o que está nos campos agora (atualiza a cada tecla);
 //  - `aplicados`: o que de fato vai para a API (a busca espera o usuário parar de digitar).
 export function useFiltrosSolicitacoes() {
-  const [filtros, setFiltros] = useState<CamposDeFiltro>(VAZIO)
-  const [pagina, setPagina] = useState(1)
-  const [porPagina, setPorPagina] = useState<number>(POR_PAGINA_PADRAO)
-  const buscaAtrasada = useDebounce(filtros.busca ?? '', 300)
+  const [params, setParams] = useSearchParams()
+  const estado = useMemo(() => lerEstadoDaUrl(params), [params])
+  const { filtros, pagina, porPagina } = estado
+  const buscaAtrasada = useDebounce(filtros.busca, 300)
+
+  // `substituir` = troca a entrada atual do histórico em vez de empilhar outra. Filtrar e digitar não devem
+  // poluir o "voltar"; já trocar de página é uma navegação de verdade e empilha.
+  const gravar = useCallback(
+    (proximo: EstadoDaLista, substituir: boolean) => setParams(paraParametrosDaUrl(proximo), { replace: substituir }),
+    [setParams],
+  )
 
   // Mudar qualquer filtro volta à primeira página: a página 5 do resultado antigo não faz sentido no novo.
-  const alterar = useCallback((alteracao: Partial<CamposDeFiltro>) => {
-    setFiltros((atuais) => ({ ...atuais, ...alteracao }))
-    setPagina(1)
-  }, [])
-
-  const limpar = useCallback(() => {
-    setFiltros(VAZIO)
-    setPagina(1)
-  }, [])
-
-  // Mudar o tamanho da página também volta ao início (o item da posição 31 muda de página).
-  const alterarPorPagina = useCallback((valor: number) => {
-    setPorPagina(valor)
-    setPagina(1)
-  }, [])
+  const alterar = useCallback(
+    (alteracao: Partial<CamposDeFiltro>) => gravar({ ...estado, filtros: { ...filtros, ...alteracao }, pagina: 1 }, true),
+    [estado, filtros, gravar],
+  )
+  const limpar = useCallback(() => gravar({ ...estado, filtros: estadoPadrao().filtros, pagina: 1 }, true), [estado, gravar])
+  const irParaPagina = useCallback((nova: number) => gravar({ ...estado, pagina: nova }, false), [estado, gravar])
+  // Mudar o tamanho também volta ao início (o item da posição 31 muda de página).
+  const alterarPorPagina = useCallback((valor: number) => gravar({ ...estado, porPagina: valor, pagina: 1 }, true), [estado, gravar])
 
   // Período invertido não é enviado (a API responderia 400); o usuário vê o aviso no campo.
   const erroPeriodo =
@@ -54,5 +56,5 @@ export function useFiltrosSolicitacoes() {
   // Só os filtros contam: estar na página 3 ou ver 50 por página não é "ter filtros ativos".
   const temFiltros = Object.values(filtros).some((valor) => !!valor)
 
-  return { filtros, aplicados, erroPeriodo, temFiltros, alterar, limpar, pagina, porPagina, irParaPagina: setPagina, alterarPorPagina }
+  return { filtros, aplicados, erroPeriodo, temFiltros, alterar, limpar, pagina, porPagina, irParaPagina, alterarPorPagina }
 }
