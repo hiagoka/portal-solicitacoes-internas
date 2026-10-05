@@ -227,6 +227,17 @@ Categorias: TI, RH, Compras, Financeiro, Infraestrutura. Status: aberto, em_aten
 
 ---
 
+---
+
+# FASE 18 — Melhorias posteriores à entrega
+
+- [x] **18.1** Filtros, busca e página na URL (link compartilhável; recarregar e "voltar" mantêm a tela)
+- [x] **18.2** Cartões do dashboard como links para a lista filtrada
+- [x] **18.3** Exclusão lógica (`excluido_em`) em todas as consultas
+- [x] **18.4** Histórico de status (tabela, transação, rota, linha do tempo na interface)
+- [x] **18.5** Memorial Técnico em PDF gerado por script
+- [x] **18.6** Correções da revisão de código (decisão 067)
+
 ## Checklist de entrega (exigido pelo PDF)
 - [x] Código-fonte de backend e frontend
 - [x] Instruções de execução
