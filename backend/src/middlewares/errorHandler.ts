@@ -14,6 +14,7 @@ export const naoEncontrado: RequestHandler = (_req, _res, next) => {
 
 // Middleware global: toda falha da API passa por aqui e sai no mesmo formato JSON.
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  const idRequisicao = res.locals.idRequisicao as string | undefined;
   if (err instanceof AppError) {
     res.status(err.status).json({ erro: err.message, detalhes: err.detalhes });
     return;
@@ -33,7 +34,8 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  // Erro inesperado: registra no servidor e não vaza detalhes internos ao cliente.
-  if (env.NODE_ENV !== 'test') console.error(err);
-  res.status(500).json({ erro: 'Erro interno do servidor' });
+  // Erro inesperado: registra no servidor (com o ID da requisição, para achar a linha certa do log) e não vaza detalhes
+  // internos ao cliente. O cliente recebe só o ID, que o usuário pode informar ao suporte.
+  if (env.NODE_ENV !== 'test') console.error(JSON.stringify({ nivel: 'erro', id: idRequisicao, mensagem: err instanceof Error ? err.message : String(err) }), err);
+  res.status(500).json({ erro: 'Erro interno do servidor', idRequisicao });
 };
