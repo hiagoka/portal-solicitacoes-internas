@@ -40,4 +40,9 @@ export const solicitacaoController = {
     const solicitacao = await solicitacaoService.alterarStatus(req.usuario!, id, status);
     res.json({ solicitacao });
   },
+
+  async historico(req: Request, res: Response) {
+    const { id } = res.locals.params as { id: number };
+    res.json({ historico: await solicitacaoService.historico(req.usuario!, id) });
+  },
 };

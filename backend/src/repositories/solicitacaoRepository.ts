@@ -1,4 +1,4 @@
-import { query } from '../config/database';
+import { query, transacao } from '../config/database';
 import type { Solicitacao, Status } from '../types/solicitacao';
 import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
 
@@ -40,13 +40,21 @@ function paraSolicitacao(r: SolicitacaoRow): Solicitacao {
 
 export const solicitacaoRepository = {
   // Status 'aberto' e criado_em vêm dos DEFAULTs do banco.
+  // A solicitação e o evento de abertura do histórico são gravados na MESMA transação: nunca existe uma sem a outra.
   async inserir(dados: SolicitacaoInput, usuarioId: number): Promise<number> {
-    const { rows } = await query<{ id: number }>(
-      `INSERT INTO solicitacoes (titulo, descricao, categoria, usuario_id)
-       VALUES ($1, $2, $3, $4) RETURNING id`,
-      [dados.titulo, dados.descricao, dados.categoria, usuarioId],
-    );
-    return rows[0].id;
+    return transacao(async (cliente) => {
+      const { rows } = await cliente.query<{ id: number }>(
+        `INSERT INTO solicitacoes (titulo, descricao, categoria, usuario_id)
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [dados.titulo, dados.descricao, dados.categoria, usuarioId],
+      );
+      await cliente.query(
+        `INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id)
+         VALUES ($1, NULL, 'aberto', $2)`,
+        [rows[0].id, usuarioId],
+      );
+      return rows[0].id;
+    });
   },
 
   async buscarPorId(id: number): Promise<Solicitacao | null> {
@@ -115,13 +123,21 @@ export const solicitacaoRepository = {
     return (rowCount ?? 0) > 0;
   },
 
-  // Só altera se o status ainda for o `atual` lido pelo service (evita dois atendentes
-  // sobrescreverem um ao outro). Retorna true se alterou.
-  async atualizarStatus(id: number, atual: Status, novo: Status): Promise<boolean> {
-    const { rowCount } = await query(
-      'UPDATE solicitacoes SET status = $1, atualizado_em = NOW() WHERE id = $2 AND status = $3 AND excluido_em IS NULL',
-      [novo, id, atual],
-    );
-    return (rowCount ?? 0) > 0;
+  // Só altera se o status ainda for o `atual` lido pelo service (evita dois atendentes sobrescreverem um ao outro).
+  // O evento do histórico é gravado na mesma transação, e SÓ se a mudança de fato ocorreu: duas mudanças simultâneas
+  // para o mesmo status geram um único evento. Retorna true se alterou.
+  async atualizarStatus(id: number, atual: Status, novo: Status, usuarioId: number): Promise<boolean> {
+    return transacao(async (cliente) => {
+      const { rowCount } = await cliente.query(
+        'UPDATE solicitacoes SET status = $1, atualizado_em = NOW() WHERE id = $2 AND status = $3 AND excluido_em IS NULL',
+        [novo, id, atual],
+      );
+      if ((rowCount ?? 0) === 0) return false;
+      await cliente.query(
+        'INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id) VALUES ($1, $2, $3, $4)',
+        [id, atual, novo, usuarioId],
+      );
+      return true;
+    });
   },
 };

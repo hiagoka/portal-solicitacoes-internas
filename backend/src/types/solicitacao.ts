@@ -31,3 +31,12 @@ export interface Paginacao {
   total: number;
   totalPaginas: number;
 }
+
+// Um registro do histórico de status. `statusAnterior` é nulo no evento de abertura.
+export interface EventoHistorico {
+  id: number;
+  statusAnterior: Status | null;
+  statusNovo: Status;
+  criadoEm: Date;
+  usuario: { id: number; nome: string };
+}

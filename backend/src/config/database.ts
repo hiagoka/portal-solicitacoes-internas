@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 import { env } from './env';
 
 // Pool: conjunto de conexões reutilizáveis com o Postgres.
@@ -16,4 +16,21 @@ pool.on('error', (erro) => {
 // são concatenados no texto SQL: é isso que impede SQL injection.
 export function query<T extends object = Record<string, unknown>>(texto: string, params: unknown[] = []) {
   return pool.query<T>(texto, params);
+}
+
+// Executa várias consultas como UMA operação: ou todas valem (COMMIT), ou nenhuma (ROLLBACK, se algo lançar erro).
+// Usada quando duas gravações precisam andar juntas, como mudar o status e registrar o evento no histórico.
+export async function transacao<T>(operacao: (cliente: PoolClient) => Promise<T>): Promise<T> {
+  const cliente = await pool.connect();
+  try {
+    await cliente.query('BEGIN');
+    const resultado = await operacao(cliente);
+    await cliente.query('COMMIT');
+    return resultado;
+  } catch (erro) {
+    await cliente.query('ROLLBACK');
+    throw erro;
+  } finally {
+    cliente.release();
+  }
 }

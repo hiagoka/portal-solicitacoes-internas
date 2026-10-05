@@ -1,7 +1,8 @@
 import { AppError } from '../middlewares/AppError';
+import { historicoRepository } from '../repositories/historicoRepository';
 import { solicitacaoRepository } from '../repositories/solicitacaoRepository';
 import type { FiltrosSolicitacao, SolicitacaoInput } from '../schemas/solicitacao.schema';
-import { TRANSICOES, type Paginacao, type Solicitacao, type Status } from '../types/solicitacao';
+import { TRANSICOES, type EventoHistorico, type Paginacao, type Solicitacao, type Status } from '../types/solicitacao';
 import type { UsuarioPublico } from '../types/usuario';
 
 export const solicitacaoService = {
@@ -63,8 +64,15 @@ export const solicitacaoService = {
     if (!TRANSICOES[solicitacao.status].includes(novo)) {
       throw AppError.conflict(`Não é possível mudar de "${solicitacao.status}" para "${novo}"`);
     }
-    const alterou = await solicitacaoRepository.atualizarStatus(id, solicitacao.status, novo);
+    const alterou = await solicitacaoRepository.atualizarStatus(id, solicitacao.status, novo, usuario.id);
     if (!alterou) throw AppError.conflict('O status foi alterado por outra pessoa. Atualize a página e tente novamente');
     return this.obter(usuario, id);
+  },
+
+  // O histórico segue a mesma visibilidade da solicitação: `obter` já devolve 404 para quem não pode vê-la
+  // (ou se foi excluída), e só então os eventos são lidos.
+  async historico(usuario: UsuarioPublico, id: number): Promise<EventoHistorico[]> {
+    await this.obter(usuario, id);
+    return historicoRepository.listar(id);
   },
 };
