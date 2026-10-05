@@ -50,14 +50,15 @@ export const solicitacaoRepository = {
   },
 
   async buscarPorId(id: number): Promise<Solicitacao | null> {
-    const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} WHERE s.id = $1`, [id]);
+    const { rows } = await query<SolicitacaoRow>(`${SELECT_BASE} WHERE s.id = $1 AND s.excluido_em IS NULL`, [id]);
     return rows[0] ? paraSolicitacao(rows[0]) : null;
   },
 
   // Monta o WHERE dinamicamente, mas só com condições fixas no código; os VALORES sempre vão
   // em parâmetros ($1, $2...). Assim a combinação de filtros é segura contra SQL injection.
   async listar(filtros: FiltrosListagem): Promise<{ itens: Solicitacao[]; total: number }> {
-    const condicoes: string[] = [];
+    // Solicitações excluídas (exclusão lógica) não aparecem em nenhuma listagem.
+    const condicoes: string[] = ['s.excluido_em IS NULL'];
     const params: unknown[] = [];
     const adicionar = (condicao: string, valor: unknown) => {
       params.push(valor);
@@ -96,7 +97,7 @@ export const solicitacaoRepository = {
     const { rowCount } = await query(
       `UPDATE solicitacoes
           SET titulo = $1, descricao = $2, categoria = $3, atualizado_em = NOW()
-        WHERE id = $4 AND status = 'aberto'`,
+        WHERE id = $4 AND status = 'aberto' AND excluido_em IS NULL`,
       [dados.titulo, dados.descricao, dados.categoria, id],
     );
     return (rowCount ?? 0) > 0;
@@ -104,7 +105,13 @@ export const solicitacaoRepository = {
 
   // Mesma proteção do atualizar: só exclui se ainda estiver aberta.
   async excluir(id: number): Promise<boolean> {
-    const { rowCount } = await query(`DELETE FROM solicitacoes WHERE id = $1 AND status = 'aberto'`, [id]);
+    // Exclusão LÓGICA: a linha permanece no banco (trilha de auditoria) e apenas deixa de aparecer. O código (id)
+    // nunca é reaproveitado. `excluido_em IS NULL` também impede "excluir de novo" (a segunda vez responde 404).
+    const { rowCount } = await query(
+      `UPDATE solicitacoes SET excluido_em = NOW(), atualizado_em = NOW()
+        WHERE id = $1 AND status = 'aberto' AND excluido_em IS NULL`,
+      [id],
+    );
     return (rowCount ?? 0) > 0;
   },
 
@@ -112,7 +119,7 @@ export const solicitacaoRepository = {
   // sobrescreverem um ao outro). Retorna true se alterou.
   async atualizarStatus(id: number, atual: Status, novo: Status): Promise<boolean> {
     const { rowCount } = await query(
-      'UPDATE solicitacoes SET status = $1, atualizado_em = NOW() WHERE id = $2 AND status = $3',
+      'UPDATE solicitacoes SET status = $1, atualizado_em = NOW() WHERE id = $2 AND status = $3 AND excluido_em IS NULL',
       [novo, id, atual],
     );
     return (rowCount ?? 0) > 0;
