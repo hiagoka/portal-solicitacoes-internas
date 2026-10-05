@@ -1,7 +1,7 @@
 import { NavLink, Link } from 'react-router'
 import { Badge, Button } from '@/components/ui'
 import { PERFIL_LABEL, ROTAS } from '@/constants'
-import { useAuth } from '@/hooks'
+import { useAuth, useToast } from '@/hooks'
 import { cn } from '@/lib/cn'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -21,6 +21,15 @@ function classeDoLink({ isActive }: { isActive: boolean }) {
 // (a ordem visual muda por CSS; no HTML a leitura continua marca → navegação → ações).
 export function Header() {
   const { usuario, logout } = useAuth()
+  const toast = useToast()
+  async function sair() {
+    try {
+      await logout()
+    } catch {
+      toast.erro('Não foi possível encerrar a sessão. Verifique sua conexão e tente novamente.')
+    }
+  }
+
   const perfil = usuario && <Badge tone="primary">{PERFIL_LABEL[usuario.perfil]}</Badge>
 
   return (
@@ -48,7 +57,7 @@ export function Header() {
             </div>
           )}
           <ThemeToggle />
-          <Button variant="secondary" onClick={() => void logout()}>
+          <Button variant="secondary" onClick={() => void sair()}>
             Sair
           </Button>
         </div>

@@ -10,6 +10,7 @@ export interface AuthContextValue {
   carregando: boolean
   /** Lança ApiError se as credenciais forem inválidas. */
   login: (usuario: string, senha: string) => Promise<void>
+  /** Lança erro se o servidor não confirmar o encerramento da sessão (o usuário continua logado). */
   logout: () => Promise<void>
 }
 

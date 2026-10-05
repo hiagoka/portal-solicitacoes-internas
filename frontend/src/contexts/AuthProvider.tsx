@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { authService, definirAoExpirarSessao } from '@/services'
+import { ApiError, authService, definirAoExpirarSessao } from '@/services'
 import type { Usuario } from '@/types'
 import { AuthContext, type AuthContextValue } from './authContext'
 
@@ -33,13 +33,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSaiuVoluntariamente(false)
   }, [])
 
+  // Só mostra o usuário como "saído" depois que o servidor confirma. Se a chamada falhar (API fora do ar, por
+  // exemplo), o cookie de sessão continua válido: fingir que saiu deixaria a sessão aberta num computador
+  // compartilhado, e um recarregamento da página logaria a pessoa de volta. Por isso o erro é repassado.
   const logout = useCallback(async () => {
     try {
       await authService.logout()
-    } finally {
-      setSaiuVoluntariamente(true)
-      setUsuario(null) // mesmo que a chamada falhe, a tela deixa de mostrar o usuário
+    } catch (erro) {
+      // 401 = a sessão já tinha expirado; "sair" já está feito, não há o que desfazer.
+      if (!(erro instanceof ApiError && erro.status === 401)) throw erro
     }
+    setSaiuVoluntariamente(true)
+    setUsuario(null)
   }, [])
 
   const valor = useMemo<AuthContextValue>(
