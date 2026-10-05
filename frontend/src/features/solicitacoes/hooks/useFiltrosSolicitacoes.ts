@@ -2,9 +2,14 @@ import { useCallback, useMemo, useState } from 'react'
 import { useLocation, useNavigationType, useSearchParams } from 'react-router'
 import { useDebounce } from '@/hooks'
 import type { FiltrosSolicitacao } from '@/types'
-import { estadoPadrao, lerEstadoDaUrl, paraParametrosDaUrl, type CamposDeFiltro, type EstadoDaLista } from '../utils/filtrosUrl'
+import { LIMITE_BUSCA, estadoPadrao, lerEstadoDaUrl, paraParametrosDaUrl, type CamposDeFiltro, type EstadoDaLista } from '../utils/filtrosUrl'
 
 export { OPCOES_POR_PAGINA } from '../utils/filtrosUrl'
+
+// Marca nas gravações FEITAS POR ESTE HOOK (via `state` do histórico), para distinguir uma navegação dele de uma externa
+// (o clique no menu "Solicitações", um link, voltar/avançar).
+const ORIGEM_DAS_GRAVACOES = { origem: 'filtros-da-lista' } as const
+const foiGravadoPorEsteHook = (estado: unknown) => (estado as { origem?: string } | null)?.origem === ORIGEM_DAS_GRAVACOES.origem
 
 // Filtros e paginação da listagem, guardados na URL: o link da lista filtrada pode ser copiado e compartilhado,
 // recarregar a página mantém tudo e o botão "voltar" (depois de abrir uma solicitação) devolve a lista como estava.
@@ -26,10 +31,12 @@ export function useFiltrosSolicitacoes() {
   const [texto, setTexto] = useState(daUrl.filtros.busca)
   const [chaveVista, setChaveVista] = useState(location.key)
   if (location.key !== chaveVista) {
-    // Ajuste durante a renderização (padrão recomendado pelo React): voltar/avançar no histórico (POP) é uma mudança
-    // externa, então o campo passa a mostrar o que a URL diz. As gravações da própria tela são REPLACE/PUSH e não entram aqui.
+    // Ajuste durante a renderização (padrão recomendado pelo React). Toda navegação que NÃO foi feita por este hook é
+    // externa e o campo passa a mostrar o que a URL diz: voltar/avançar (POP) e também um clique no menu ou em um link
+    // (PUSH sem a nossa marca). Antes só o POP era tratado, e clicar em "Solicitações" com uma busca ativa deixava o texto
+    // antigo no campo (e a lista filtrada) enquanto a URL já estava sem filtros.
     setChaveVista(location.key)
-    if (tipoDeNavegacao === 'POP') setTexto(daUrl.filtros.busca)
+    if (tipoDeNavegacao === 'POP' || !foiGravadoPorEsteHook(location.state)) setTexto(daUrl.filtros.busca)
   }
 
   const estado: EstadoDaLista = useMemo(() => ({ ...daUrl, filtros: { ...daUrl.filtros, busca: texto } }), [daUrl, texto])
@@ -39,7 +46,8 @@ export function useFiltrosSolicitacoes() {
   // `substituir` = troca a entrada atual do histórico em vez de empilhar outra. Filtrar e digitar não devem
   // poluir o "voltar"; já trocar de página é uma navegação de verdade e empilha.
   const gravar = useCallback(
-    (proximo: EstadoDaLista, substituir: boolean) => setParams(paraParametrosDaUrl(proximo), { replace: substituir }),
+    (proximo: EstadoDaLista, substituir: boolean) =>
+      setParams(paraParametrosDaUrl(proximo), { replace: substituir, state: ORIGEM_DAS_GRAVACOES }),
     [setParams],
   )
 
@@ -67,7 +75,7 @@ export function useFiltrosSolicitacoes() {
     () => ({
       status: filtros.status,
       categoria: filtros.categoria,
-      busca: buscaAtrasada.trim(),
+      busca: buscaAtrasada.trim().slice(0, LIMITE_BUSCA),
       de: erroPeriodo ? '' : filtros.de,
       ate: erroPeriodo ? '' : filtros.ate,
       pagina,

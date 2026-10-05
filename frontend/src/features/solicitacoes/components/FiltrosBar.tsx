@@ -3,6 +3,7 @@ import { Badge, Button, Card, Input, Select } from '@/components/ui'
 import { CATEGORIAS_LISTA, CATEGORIA_LABEL, STATUS_LABEL, STATUS_LISTA } from '@/constants'
 import { cn } from '@/lib/cn'
 import type { FiltrosSolicitacao } from '@/types'
+import { LIMITE_BUSCA } from '../utils/filtrosUrl'
 
 type FiltrosBarProps = {
   filtros: FiltrosSolicitacao
@@ -38,6 +39,7 @@ export function FiltrosBar({ filtros, erroPeriodo, temFiltros, onChange, onLimpa
             label="Buscar pelo título"
             placeholder="Digite parte do título..."
             value={filtros.busca ?? ''}
+            maxLength={LIMITE_BUSCA} // o mesmo limite da API: um texto maior (colado, por exemplo) responderia 400
             onChange={(e) => onChange({ busca: e.target.value })}
           />
         </div>

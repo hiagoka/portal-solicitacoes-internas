@@ -3,7 +3,7 @@ import type { Categoria, Status } from '@/types'
 
 export const OPCOES_POR_PAGINA = [5, 10, 20, 50] as const
 export const POR_PAGINA_PADRAO = 10
-const LIMITE_BUSCA = 100 // o mesmo limite da API: uma busca maior responderia 400
+export const LIMITE_BUSCA = 100 // o mesmo limite da API: uma busca maior responderia 400
 
 export interface CamposDeFiltro {
   busca: string
