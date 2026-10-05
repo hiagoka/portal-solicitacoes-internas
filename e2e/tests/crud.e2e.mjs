@@ -95,6 +95,10 @@ await ir('/solicitacoes/4')
 checar('7 solicitação de outro usuário: não encontrada', await temTexto('Solicitação não encontrada'))
 await ir('/solicitacoes/abc')
 checar('7 código inválido: não encontrada', await temTexto('Solicitação não encontrada'))
+for (const id of ['3000000000', '99999999999999999999', '0001', '1e3']) {
+  await ir(`/solicitacoes/${id}`)
+  checar(`7 código ${id}: "não encontrada" (e não "Não foi possível carregar")`, (await temTexto('Solicitação não encontrada')) && !(await temTexto('Não foi possível carregar')))
+}
 checar('7 código inválido: nem chega a consultar a API (não existe requisição para /NaN)', !t.rede.some((r) => r.url.includes('NaN')), JSON.stringify(t.rede.filter((r) => r.url.includes('NaN'))))
 
 // ============ ERRO: exclusão com conflito ============

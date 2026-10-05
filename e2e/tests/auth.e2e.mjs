@@ -2,7 +2,7 @@
 import { iniciar } from '../lib/harness.mjs'
 
 const t = await iniciar('auth', { largura: 1100, altura: 700 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, digitar } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, digitar, pausa } = t
 
 // 1. rota protegida sem login
 await ir('/')
@@ -70,6 +70,30 @@ await ir('/solicitacoes')
 await sair()
 await entrar('joao')
 checar('11 depois de "Sair", o próximo login cai no dashboard (e não na tela anterior)', caminho() === '/', caminho())
+
+// 13. link COM filtros aberto sem sessão: depois do login volta a ele inteiro (antes só o caminho)
+await sair()
+await ir('/solicitacoes?status=em_atendimento&porPagina=5')
+checar('13 link com filtros sem sessão vai ao login', caminho() === '/login', caminho())
+await digitar('input[autocomplete=username]', 'atendente')
+await digitar('input[autocomplete=current-password]', 'senha123')
+await pagina.click('button[type=submit]')
+await esperar(() => location.pathname === '/solicitacoes' && document.querySelector('tbody tr'))
+checar('13 depois do login, a URL conserva filtro e tamanho da página', new URL(pagina.url()).search === '?status=em_atendimento&porPagina=5', new URL(pagina.url()).search)
+checar('13 e a lista aparece já filtrada (3 em atendimento)', (await pagina.$$('tbody tr')).length === 3)
+
+// 14. /login com sessão válida enquanto a verificação da sessão demora: o formulário NÃO pode aparecer (nem roubar o foco)
+const lenta = await pagina.browserContext().newPage()
+await lenta.setRequestInterception(true)
+lenta.on('request', (r) => (r.url().endsWith('/auth/me') ? setTimeout(() => r.continue().catch(() => {}), 2500) : r.continue().catch(() => {})))
+await lenta.goto(`${new URL(pagina.url()).origin}/login`, { waitUntil: 'domcontentloaded' }); await pausa(1500)
+const formularioPiscou = await lenta.evaluate(() => !!document.querySelector('input[autocomplete=username]'))
+checar('14 /login com sessão válida: o formulário não aparece enquanto a sessão é verificada', !formularioPiscou)
+await pausa(2500)
+checar('14 e, verificada a sessão, vai para o dashboard', new URL(lenta.url()).pathname === '/', new URL(lenta.url()).pathname)
+await lenta.close()
+await ir('/solicitacoes'); await sair()
+await entrar('joao')
 
 // 12. "Sair" com a API fora do ar: não finge que saiu (o cookie continua válido no servidor)
 t.bloqueio.quando = (rota, metodo) => metodo === 'POST' && rota === '/auth/logout'

@@ -163,4 +163,19 @@ await esperar(() => document.querySelector('tbody tr, [role=status]'))
 await clicar('Limpar filtros'); await pausa(700)
 checar('19 "Limpar filtros" tira os filtros da URL e mantém o tamanho da página', consulta() === '?porPagina=5', consulta())
 
+// ---------- o cliente espelha a validação da API (links e digitação que antes caíam numa tela de erro) ----------
+await ir('/solicitacoes'); await esperar(() => document.querySelector('tbody tr'))
+await digitar(await campo('Buscar pelo título'), 'a'.repeat(150)); await pausa(1200)
+checar('20 busca longa colada: o campo para em 100 caracteres e a lista NÃO vira tela de erro', (await (await campo('Buscar pelo título')).evaluate((e) => e.value.length)) === 100 && !(await temTexto('Não foi possível carregar')), `${await (await campo('Buscar pelo título')).evaluate((e) => e.value.length)}`)
+
+for (const [nome, consultaUrl] of [['data que não existe (31/02)', '?de=2026-02-31'], ['ano 0000', '?ate=0000-01-01'], ['mês 13', '?de=2026-13-01']]) {
+  await ir(`/solicitacoes${consultaUrl}`); await esperar(() => document.querySelector('tbody tr')); await pausa(400)
+  checar(`20 link com ${nome}: abre a lista normal, sem erro`, (await codigos()).length === 10 && !(await temTexto('Não foi possível carregar')), `${(await codigos()).length} linhas`)
+}
+
+// Clicar no menu "Solicitações" com filtros ativos: o campo de busca tem que acompanhar a URL (antes ficava com o texto antigo)
+await ir('/solicitacoes?busca=nota&status=aberto'); await esperar(() => document.querySelector('tbody tr, [role=status]')); await pausa(500)
+await pagina.evaluate(() => [...document.querySelectorAll('header nav a')].find((a) => a.textContent.trim() === 'Solicitações').click()); await pausa(1200)
+checar('21 menu "Solicitações" limpa TODOS os filtros: URL, campos e lista concordam', consulta() === '' && (await valorDe('Buscar pelo título')) === '' && (await valorDe('Status')) === '' && (await codigos()).length === 10, `URL="${consulta()}" busca="${await valorDe('Buscar pelo título')}" linhas=${(await codigos()).length}`)
+
 await t.finalizar()
