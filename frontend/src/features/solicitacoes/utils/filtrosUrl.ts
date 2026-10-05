@@ -26,7 +26,15 @@ export const estadoPadrao = (): EstadoDaLista => ({
   porPagina: POR_PAGINA_PADRAO,
 })
 
-const dataIso = (valor: string | null) => (valor && /^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor : '')
+// Só datas REAIS no formato AAAA-MM-DD. A API recusa (400) datas inexistentes, como 2026-02-31, e o ano 0000; se a URL as
+// deixasse passar, o link abriria uma tela de erro em vez da lista. A conferência é o "ida e volta": o JavaScript corrige
+// 2026-02-31 para 2026-03-03, então uma data só é real se escrever de volta exatamente o mesmo texto.
+function dataIso(valor: string | null): string {
+  if (!valor || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return ''
+  const data = new Date(`${valor}T00:00:00Z`)
+  const real = !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === valor && data.getUTCFullYear() >= 1
+  return real ? valor : ''
+}
 
 // A URL pode ser digitada ou editada por qualquer pessoa. Todo valor inválido é descartado em silêncio (vira o
 // padrão) em vez de gerar um erro: um link quebrado deve abrir a lista, não uma tela de falha.

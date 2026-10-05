@@ -24,5 +24,9 @@ describe('formatar', () => {
     expect(formatarIntervalo(3, 10, 23)).toBe('21–23 de 23') // última página, incompleta
     expect(formatarIntervalo(1, 10, 1)).toBe('1–1 de 1')
     expect(formatarIntervalo(1, 10, 0)).toBe('0 de 0')
+    // Página além da última (link antigo ou digitado): o início passaria do total e o texto sairia "41–23 de 23".
+    expect(formatarIntervalo(5, 10, 23)).toBe('0 de 23')
+    expect(formatarIntervalo(4, 10, 23)).toBe('0 de 23')
+    expect(formatarIntervalo(3, 10, 23)).toBe('21–23 de 23')
   })
 })

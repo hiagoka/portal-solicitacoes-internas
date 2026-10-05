@@ -36,6 +36,21 @@ describe('lerEstadoDaUrl', () => {
     expect(estado.filtros).toMatchObject(esperado.filtros ?? {})
   })
 
+  // A API rejeita datas inexistentes e o ano 0000 (400). Se a URL as deixasse passar, o link abriria uma tela de ERRO em vez da lista.
+  it.each([
+    ['dia que não existe no mês', '2026-02-31'],
+    ['29 de fevereiro em ano comum', '2026-02-29'],
+    ['mês 13', '2026-13-01'],
+    ['dia zero', '2026-01-00'],
+    ['ano 0000', '0000-01-01'],
+  ])('descarta data impossível: %s', (_nome, data) => {
+    expect(ler(`de=${data}&ate=${data}`).filtros).toMatchObject({ de: '', ate: '' })
+  })
+
+  it.each(['2026-02-28', '2024-02-29', '2000-02-29', '0001-01-01', '2026-12-31'])('mantém a data real %s', (data) => {
+    expect(ler(`de=${data}`).filtros.de).toBe(data)
+  })
+
   it('limita a busca a 100 caracteres (o limite da API), evitando um erro 400', () => {
     expect(ler(`busca=${'x'.repeat(150)}`).filtros.busca).toHaveLength(100)
   })
