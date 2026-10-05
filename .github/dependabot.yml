@@ -1,0 +1,41 @@
+# Atualizações automáticas de dependências (uma pull request por semana e por grupo, para não gerar ruído).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(deps)" }
+    groups:
+      backend-minor-e-patch: { update-types: [minor, patch] }
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(deps)" }
+    groups:
+      frontend-minor-e-patch: { update-types: [minor, patch] }
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 3
+    commit-message: { prefix: "chore(deps)" }
+    groups:
+      e2e-minor-e-patch: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: "ci(deps)" }
+  # Imagens base dos Dockerfiles (node, nginx) e do compose (postgres)
+  - package-ecosystem: docker
+    directory: /backend
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore(deps)" }
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore(deps)" }
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: weekly }
+    commit-message: { prefix: "chore(deps)" }

@@ -49,8 +49,8 @@ jobs:
         run: npm run lint
       - name: Build
         run: npm run build
-      - name: Testes
-        run: npm test
+      - name: Testes com cobertura (falha se cair abaixo dos pisos)
+        run: npm run test:coverage
 
   frontend:
     name: Frontend (tipos, lint, cores, testes e build)
@@ -72,8 +72,8 @@ jobs:
         run: npm run lint
       - name: Nenhuma cor fora do tema
         run: npm run check:cores
-      - name: Testes
-        run: npm test
+      - name: Testes com cobertura (falha se cair abaixo dos pisos)
+        run: npm run test:coverage
       - name: Build
         run: npm run build
 

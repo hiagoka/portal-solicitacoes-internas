@@ -12,5 +12,16 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    // Cobertura medida só na LÓGICA que os testes unitários miram. A interface (componentes e páginas) é coberta pelos testes
+    // de navegador, que o v8 não contabiliza; misturá-la aqui daria um número enganosamente baixo.
+    coverage: {
+      provider: 'v8',
+      include: ['src/lib/**', 'src/services/**', 'src/constants/**', 'src/styles/theme.ts', 'src/features/*/utils/**'],
+      exclude: ['**/*.test.ts', '**/index.ts'],
+      reporter: ['text-summary', 'text'],
+      // Pisos um pouco abaixo do medido (instruções 79%, ramos 95%). As funções ficam sem piso: os métodos dos services são
+      // cobertos pelos testes de navegador, que o v8 não conta.
+      thresholds: { statements: 75, branches: 90 },
+    },
   },
 })
