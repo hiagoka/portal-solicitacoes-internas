@@ -14,7 +14,10 @@ const SAIDA = process.env.E2E_OUT ?? new URL('../resultados/', import.meta.url).
 const AXE_FONTE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 
 export const pausa = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-export const diasAtras = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10)
+// Dia de N dias atrás no fuso de Brasília (o mesmo usado pela interface e pelo filtro da API). Usar o dia em UTC
+// erraria por um dia entre 21h e 23h59 de Brasília, quando o UTC já virou.
+const FORMATO_DIA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }) // AAAA-MM-DD
+export const diasAtras = (n) => FORMATO_DIA.format(new Date(Date.now() - n * 864e5))
 
 export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}) {
   mkdirSync(SAIDA, { recursive: true })
