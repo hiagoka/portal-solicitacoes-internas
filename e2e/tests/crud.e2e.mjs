@@ -3,6 +3,9 @@ import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('crud', { largura: 1100, altura: 900 })
 const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo, digitar } = t
+// Itens da linha do tempo de status exibida nos detalhes.
+const eventosDoHistorico = () =>
+  pagina.evaluate(() => [...document.querySelectorAll('ol[aria-label="Histórico de status"] li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim()))
 const modalAberto = () => pagina.evaluate(() => !!document.querySelector('dialog[open]'))
 const clicarNoModal = (rotulo) =>
   pagina.evaluate((r) => [...document.querySelectorAll('dialog button')].find((b) => b.textContent.trim() === r).click(), rotulo)
@@ -32,6 +35,8 @@ checar('2 criar leva aos detalhes da nova solicitação', Number(idNovo) > 10, c
 checar('2 toast de sucesso com o código', tela.includes(`Solicitação #00${idNovo} criada.`), tela.slice(0, 200))
 checar('2 detalhes: título, categoria, solicitante, status', tela.includes('abc Reembolso E2E') && tela.includes('Financeiro') && tela.includes('Maria Souza') && tela.includes('Aberto'))
 checar('2 descrição preserva quebra de linha', await pagina.evaluate(() => [...document.querySelectorAll('p')].some((p) => p.textContent.includes('segunda linha') && getComputedStyle(p).whiteSpace === 'pre-wrap')))
+await esperar(() => document.querySelector('ol[aria-label="Histórico de status"] li')) // o histórico é buscado à parte dos detalhes
+checar('2 histórico: uma solicitação nova começa com o evento de abertura, feito pelo autor', JSON.stringify(await eventosDoHistorico()).includes('Solicitação aberta') && (await eventosDoHistorico()).length === 1 && (await eventosDoHistorico())[0].includes('por Maria Souza'), JSON.stringify(await eventosDoHistorico()))
 checar('3 autor de solicitação aberta vê Editar e Excluir', (await temBotao('Editar')) && (await temBotao('Excluir')))
 await t.foto('detalhes')
 
@@ -65,6 +70,9 @@ checar('5 a solicitação excluída vira "não encontrada"', await temTexto('Sol
 // restrições da Maria
 await ir('/solicitacoes/2')
 checar('6 em atendimento: sem Editar/Excluir e sem caixa de atendimento', !(await temBotao('Editar')) && !(await temBotao('Excluir')) && !(await temTitulo('Atendimento')) && (await temTexto('Em Atendimento')))
+await esperar(() => document.querySelector('ol[aria-label="Histórico de status"] li'))
+const historicoDa2 = await eventosDoHistorico()
+checar('6 histórico do seed: abertura e a assunção pelo atendente, em ordem', historicoDa2.length === 2 && historicoDa2[0].includes('Solicitação aberta') && historicoDa2[0].includes('por Maria Souza') && historicoDa2[1].includes('Status alterado de Aberto para Em Atendimento') && historicoDa2[1].includes('por Ana Atendente'), JSON.stringify(historicoDa2))
 await ir('/solicitacoes/2/editar')
 checar('6 URL de edição direta é bloqueada na tela', await temTexto('não pode ser editada'))
 await ir('/solicitacoes/4')
@@ -96,6 +104,9 @@ await (await campo('Alterar status para')).select('em_atendimento')
 await clicar('Atualizar status'); await pausa(1000)
 tela = await texto()
 checar('9 mudar status atualiza a tela e avisa', tela.includes('Status alterado para "Em Atendimento".') && (await pagina.evaluate(() => [...document.querySelectorAll('dd span')].some((s) => s.textContent === 'Em Atendimento'))))
+await esperar(() => document.querySelectorAll('ol[aria-label="Histórico de status"] li').length === 2)
+const historicoDa4 = await eventosDoHistorico()
+checar('9 histórico: a mudança aparece na linha do tempo sem recarregar a página, atribuída a quem mudou', historicoDa4.length === 2 && historicoDa4[1].includes('Status alterado de Aberto para Em Atendimento') && historicoDa4[1].includes('por Ana Atendente'), JSON.stringify(historicoDa4))
 checar('9 depois, as opções refletem o novo status', JSON.stringify(await opcoesDoSelect()) === JSON.stringify(['Selecione...', 'Aberto', 'Concluído']), JSON.stringify(await opcoesDoSelect()))
 await t.foto('detalhes-atendente')
 await ir('/solicitacoes/4/editar')
