@@ -19,3 +19,19 @@ INSERT INTO solicitacoes (titulo, descricao, categoria, status, usuario_id, cria
     ('Licença de software de design','Renovação da licença anual do editor de imagens.',                     'Compras',        'concluido',      2, NOW() - INTERVAL '30 days', NOW() - INTERVAL '25 days'),
     ('Nota fiscal não localizada',   'Não encontro a NF do fornecedor de papelaria no sistema.',             'Financeiro',     'aberto',         2, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
     ('Lâmpadas queimadas no corredor','Várias lâmpadas do corredor do 2º andar precisam de troca.',          'Infraestrutura', 'em_atendimento', 3, NOW() - INTERVAL '8 days',  NOW() - INTERVAL '7 days');
+
+-- Histórico de status coerente com o estado atual de cada solicitação (datas relativas às do próprio registro).
+-- Usuário 1 = atendente. Abertura de todas:
+INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id, criado_em)
+SELECT id, NULL, 'aberto', usuario_id, criado_em FROM solicitacoes;
+
+-- As que estão em atendimento foram assumidas na última atualização:
+INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id, criado_em)
+SELECT id, 'aberto', 'em_atendimento', 1, atualizado_em FROM solicitacoes WHERE status = 'em_atendimento';
+
+-- As concluídas passaram por "em atendimento" (a meio caminho) e foram concluídas na última atualização:
+INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id, criado_em)
+SELECT id, 'aberto', 'em_atendimento', 1, criado_em + (atualizado_em - criado_em) / 2 FROM solicitacoes WHERE status = 'concluido';
+
+INSERT INTO historico_status (solicitacao_id, status_anterior, status_novo, usuario_id, criado_em)
+SELECT id, 'em_atendimento', 'concluido', 1, atualizado_em FROM solicitacoes WHERE status = 'concluido';

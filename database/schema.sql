@@ -1,6 +1,7 @@
 -- Portal de Solicitações Internas — criação da estrutura do banco (PostgreSQL)
 -- Pode ser executado várias vezes: remove as tabelas antigas antes de recriar.
 
+DROP TABLE IF EXISTS historico_status;
 DROP TABLE IF EXISTS solicitacoes;
 DROP TABLE IF EXISTS usuarios;
 
@@ -39,3 +40,22 @@ CREATE INDEX idx_solicitacoes_status     ON solicitacoes (status);
 CREATE INDEX idx_solicitacoes_categoria  ON solicitacoes (categoria);
 CREATE INDEX idx_solicitacoes_criado_em  ON solicitacoes (criado_em);
 CREATE INDEX idx_solicitacoes_usuario_id ON solicitacoes (usuario_id);
+
+-- Histórico de status: um registro para a abertura e outro para cada mudança de status, com quem fez e quando.
+-- Fica no banco mesmo se a solicitação for excluída logicamente (trilha de auditoria).
+CREATE TABLE historico_status (
+    id               SERIAL       PRIMARY KEY,
+    solicitacao_id   INTEGER      NOT NULL REFERENCES solicitacoes (id),
+    status_anterior  VARCHAR(20),                           -- NULL no evento de abertura (não havia status antes)
+    status_novo      VARCHAR(20)  NOT NULL,
+    usuario_id       INTEGER      NOT NULL REFERENCES usuarios (id),  -- quem abriu ou mudou o status
+    criado_em        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT historico_status_anterior_valido
+        CHECK (status_anterior IS NULL OR status_anterior IN ('aberto', 'em_atendimento', 'concluido')),
+    CONSTRAINT historico_status_novo_valido
+        CHECK (status_novo IN ('aberto', 'em_atendimento', 'concluido'))
+);
+
+-- A tela de detalhes lê os eventos de UMA solicitação em ordem cronológica.
+CREATE INDEX idx_historico_status_solicitacao ON historico_status (solicitacao_id, criado_em);
