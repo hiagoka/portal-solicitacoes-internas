@@ -1,15 +1,16 @@
 import { z } from 'zod';
 import { CATEGORIAS, STATUS } from '../types/solicitacao';
+import { MAIOR_INTEIRO_DO_BANCO, semNulo } from './comum';
 
 // Usado na criação e na edição. Status, data e solicitante NÃO fazem parte: são definidos pelo servidor.
 export const solicitacaoSchema = z.object({
-  titulo: z.string().trim().min(3, 'O título precisa ter ao menos 3 caracteres').max(150, 'O título pode ter no máximo 150 caracteres'),
-  descricao: z.string().trim().min(1, 'Informe a descrição').max(5000, 'A descrição pode ter no máximo 5000 caracteres'),
+  titulo: semNulo(z.string().trim().min(3, 'O título precisa ter ao menos 3 caracteres').max(150, 'O título pode ter no máximo 150 caracteres')),
+  descricao: semNulo(z.string().trim().min(1, 'Informe a descrição').max(5000, 'A descrição pode ter no máximo 5000 caracteres')),
   categoria: z.enum(CATEGORIAS, { error: `Categoria inválida. Use: ${CATEGORIAS.join(', ')}` }),
 });
 
 export const idParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: z.coerce.number().int().positive().max(MAIOR_INTEIRO_DO_BANCO, 'Código inválido'),
 });
 
 export type SolicitacaoInput = z.infer<typeof solicitacaoSchema>;
@@ -30,7 +31,8 @@ const dataIso = z.preprocess(
     // toISOString() lançaria RangeError (500) numa data inválida.
     .refine((v) => {
       const data = new Date(`${v}T00:00:00Z`);
-      return !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === v;
+      // Ano 0000 existe para o JavaScript, mas não para o PostgreSQL (o calendário vai de 1 a.C. direto a 1 d.C.).
+      return !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === v && data.getUTCFullYear() >= 1;
     }, 'Data inválida')
     .optional(),
 );
@@ -39,7 +41,7 @@ export const filtrosSchema = z
   .object({
     status: z.preprocess(vazioParaUndefined, z.enum(STATUS, { error: `Status inválido. Use: ${STATUS.join(', ')}` }).optional()),
     categoria: z.preprocess(vazioParaUndefined, z.enum(CATEGORIAS, { error: `Categoria inválida. Use: ${CATEGORIAS.join(', ')}` }).optional()),
-    busca: z.preprocess(vazioParaUndefined, z.string().trim().max(100, 'A busca pode ter no máximo 100 caracteres').optional()),
+    busca: z.preprocess(vazioParaUndefined, semNulo(z.string().trim().max(100, 'A busca pode ter no máximo 100 caracteres')).optional()),
     de: dataIso,
     ate: dataIso,
     pagina: z.preprocess(
