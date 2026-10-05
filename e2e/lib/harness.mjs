@@ -157,6 +157,14 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   const semRolagemHorizontal = () =>
     pagina.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
   // Sem nome de suíte, o arquivo fica só com o nome dado (usado pelo gerador de prints da documentação).
+  // Simula rede lenta (latência em ms por requisição) pelo protocolo do Chrome; `latencia(0)` restaura. Serve para testar o
+  // que acontece ENQUANTO uma operação está em andamento (botões desabilitados, diálogo que não pode fechar, etc.).
+  let sessaoDeRede
+  const latencia = async (ms) => {
+    sessaoDeRede ??= await pagina.createCDPSession()
+    await sessaoDeRede.send('Network.enable')
+    await sessaoDeRede.send('Network.emulateNetworkConditions', { offline: false, latency: ms, downloadThroughput: -1, uploadThroughput: -1 })
+  }
   const foto = (arquivo, opcoes = {}) => pagina.screenshot({ path: `${SAIDA}/${nomeDaSuite ? `${nomeDaSuite}-` : ''}${arquivo}.png`, ...opcoes })
 
   // Chama a API direto (sem navegador), autenticando como um dos usuários do seed. Serve para
@@ -186,6 +194,6 @@ export async function iniciar(nomeDaSuite, { largura = 1100, altura = 800 } = {}
   return {
     pagina, checar, finalizar, bloqueio, simulacao, rede, errosDeConsole,
     esperar, texto, temTexto, caminho, linhasDaTabela, codigos, opcoesDoSelect,
-    clicar, temBotao, temTitulo, campo, digitar, preencherData, ir, entrar, sair, foto, apiComo, pausa, auditarAcessibilidade, semRolagemHorizontal,
+    clicar, temBotao, temTitulo, campo, digitar, preencherData, latencia, ir, entrar, sair, foto, apiComo, pausa, auditarAcessibilidade, semRolagemHorizontal,
   }
 }

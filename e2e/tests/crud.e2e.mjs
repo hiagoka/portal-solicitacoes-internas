@@ -2,7 +2,7 @@
 import { iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('crud', { largura: 1100, altura: 900 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo, digitar } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, temTitulo, campo, ir, entrar, sair, opcoesDoSelect, apiComo, digitar, latencia } = t
 // Itens da linha do tempo de status exibida nos detalhes.
 const eventosDoHistorico = () =>
   pagina.evaluate(() => [...document.querySelectorAll('ol[aria-label="Histórico de status"] li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim()))
@@ -66,6 +66,22 @@ tela = await texto()
 checar('5 confirmar exclui, volta à lista e avisa', caminho() === '/solicitacoes' && tela.includes('excluída.') && !tela.includes('Reembolso E2E'))
 await ir(`/solicitacoes/${idNovo}`)
 checar('5 a solicitação excluída vira "não encontrada"', await temTexto('Solicitação não encontrada'))
+
+// excluir: o diálogo NÃO pode ser fechado enquanto a exclusão está em andamento (Esc, clique no fundo ou ×)
+const emAndamento = await (await apiComo('maria', 'POST', '/solicitacoes', { titulo: 'Excluir com rede lenta', descricao: 'x', categoria: 'TI' })).json()
+await ir(`/solicitacoes/${emAndamento.solicitacao.id}`)
+await esperar(() => document.body.innerText.includes('Excluir com rede lenta'))
+await latencia(2000)
+await clicar('Excluir'); await pausa(400)
+await clicarNoModal('Excluir'); await pausa(400)               // confirmou: o pedido está em andamento (2 s de latência)
+await pagina.keyboard.press('Escape'); await pausa(300)
+checar('5 durante a exclusão, Esc NÃO fecha o diálogo', await modalAberto())
+await pagina.mouse.click(5, 5); await pausa(300)                // clique no fundo escurecido
+checar('5 durante a exclusão, clicar no fundo NÃO fecha o diálogo', await modalAberto())
+checar('5 durante a exclusão, o botão × fica desabilitado', await pagina.evaluate(() => document.querySelector('dialog button[aria-label="Fechar"]').disabled))
+await esperar(() => location.pathname === '/solicitacoes')
+await latencia(0)
+checar('5 e a exclusão confirmada segue até o fim (volta à lista)', caminho() === '/solicitacoes')
 
 // restrições da Maria
 await ir('/solicitacoes/2')
