@@ -2,7 +2,7 @@
 import { iniciar } from '../lib/harness.mjs'
 
 const t = await iniciar('auth', { largura: 1100, altura: 700 })
-const { pagina, checar, texto, caminho, esperar, clicar, ir, entrar, sair } = t
+const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair } = t
 
 // 1. rota protegida sem login
 await ir('/')
@@ -71,4 +71,16 @@ await sair()
 await entrar('joao')
 checar('11 depois de "Sair", o próximo login cai no dashboard (e não na tela anterior)', caminho() === '/', caminho())
 
-await t.finalizar({ ignorarErros: /401|Failed to load resource|net::/ })
+// 12. "Sair" com a API fora do ar: não finge que saiu (o cookie continua válido no servidor)
+t.bloqueio.quando = (rota, metodo) => metodo === 'POST' && rota === '/auth/logout'
+t.bloqueio.ativo = true
+await clicar('Sair')
+await esperar(() => document.body.innerText.includes('Não foi possível encerrar a sessão'))
+checar('12 logout falho: avisa o erro e continua logado (sem fingir que saiu)', (await temTexto('Não foi possível encerrar a sessão')) && caminho() === '/' && (await temTexto('Sair')))
+await pagina.reload({ waitUntil: 'networkidle0' })
+checar('12 logout falho: a sessão realmente continua válida após recarregar', caminho() === '/' && (await temTexto('Olá, João Lima')))
+t.bloqueio.ativo = false
+await sair()
+checar('12 com a API de volta, "Sair" funciona', caminho() === '/login')
+
+await t.finalizar({ ignorarErros: /401|Failed to load resource|net::|ERR_FAILED/ })
