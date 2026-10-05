@@ -10,7 +10,13 @@ export const solicitacaoSchema = z.object({
 });
 
 export const idParamSchema = z.object({
-  id: z.coerce.number().int().positive().max(MAIOR_INTEIRO_DO_BANCO, 'Código inválido'),
+  // Só a forma CANÔNICA do código: dígitos, sem zeros à esquerda, sinal, expoente nem hexadecimal. `z.coerce.number()`
+  // aceitava "0001", "1e0", "+1", "%201" e "0x1" como o código 1, ou seja, vários endereços para o mesmo recurso.
+  id: z
+    .string()
+    .regex(/^[1-9]\d{0,9}$/, 'Código inválido')
+    .transform(Number)
+    .pipe(z.number().max(MAIOR_INTEIRO_DO_BANCO, 'Código inválido')),
 });
 
 export type SolicitacaoInput = z.infer<typeof solicitacaoSchema>;
