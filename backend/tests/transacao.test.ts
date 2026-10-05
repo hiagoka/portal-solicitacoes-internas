@@ -43,10 +43,11 @@ describe('transacao()', () => {
       });
     }
 
-    it('o processo NÃO cai e o erro devolvido é o original (não o do ROLLBACK que também falha)', async () => {
-      const erro = await transacaoComConexaoDerrubada().catch((e: Error) => e);
+    it('o processo NÃO cai e o erro devolvido é a CAUSA (a queda da conexão), não os efeitos em cascata', async () => {
+      const erro = (await transacaoComConexaoDerrubada().catch((e: Error) => e)) as Error;
       expect(erro).toBeInstanceOf(Error);
-      expect(erro.message).toMatch(/terminating connection/); // e não "Client has encountered a connection error..."
+      expect(erro.message).toMatch(/terminating connection|Connection terminated/); // a causa
+      expect(erro.message).not.toMatch(/not queryable/); // e não "Client has encountered a connection error and is not queryable"
     });
 
     it('a conexão morta é descartada: as consultas seguintes funcionam e a transação funciona de novo', async () => {

@@ -24,13 +24,16 @@ export function query<T extends object = Record<string, unknown>>(texto: string,
 // Cuidados com a conexão emprestada do pool:
 // - O pool só escuta o evento "error" de conexões OCIOSAS. Enquanto esta está emprestada, quem escuta somos nós; sem o
 //   ouvinte, uma queda de conexão viraria exceção não capturada e derrubaria o processo inteiro da API.
-// - Se o ROLLBACK também falhar (a conexão já caiu), o erro que importa é o ORIGINAL; o do ROLLBACK é descartado.
+// - Quando a conexão cai, a consulta seguinte falha com um erro SECUNDÁRIO ("not queryable") e o ROLLBACK também falha. O erro
+//   que importa é a CAUSA: o primeiro erro emitido pela conexão. É ele que é devolvido, e não os efeitos em cascata.
 // - Uma conexão que falhou NÃO volta ao pool: `release(true)` a destrói, para a próxima requisição não pegar uma conexão morta.
 export async function transacao<T>(operacao: (cliente: PoolClient) => Promise<T>): Promise<T> {
   const cliente = await pool.connect();
   let conexaoQuebrada = false;
+  let causa: Error | undefined;
   const aoErrar = (erro: Error) => {
     conexaoQuebrada = true;
+    causa ??= erro; // guarda só o PRIMEIRO erro (a causa raiz)
     if (env.NODE_ENV !== 'test') console.error('Conexão do banco falhou durante uma transação:', erro.message);
   };
   cliente.on('error', aoErrar);
@@ -46,7 +49,7 @@ export async function transacao<T>(operacao: (cliente: PoolClient) => Promise<T>
     } catch {
       conexaoQuebrada = true; // sem conseguir desfazer, a conexão não é confiável
     }
-    throw erro;
+    throw causa ?? erro;
   } finally {
     cliente.removeListener('error', aoErrar);
     cliente.release(conexaoQuebrada);
