@@ -87,6 +87,7 @@ Para consultar as excluídas diretamente no banco: `SELECT * FROM solicitacoes W
 | `idx_solicitacoes_categoria` | `categoria` | Filtro por categoria |
 | `idx_solicitacoes_criado_em` | `criado_em` | Filtro por período e ordenação |
 | `idx_solicitacoes_usuario_id` | `usuario_id` | Listar as solicitações de um usuário |
+| `idx_historico_status_solicitacao` | `solicitacao_id`, `criado_em` | Montar a linha do tempo de uma solicitação |
 
 ## Regras de negócio aplicadas pela API (não pelo banco)
 

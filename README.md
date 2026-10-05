@@ -197,8 +197,8 @@ Três camadas, da mais barata à mais completa:
 
 | Camada | Quantidade | Como rodar |
 |---|---|---|
-| **Backend** (Vitest + Supertest, contra um PostgreSQL real) | 164 testes | `cd backend && npm test` |
-| **Frontend** (Vitest: regras, validação, formatação, URL da listagem, cliente HTTP, contraste da paleta) | 84 testes | `cd frontend && npm test` |
+| **Backend** (Vitest + Supertest, contra um PostgreSQL real) | 205 testes | `cd backend && npm test` |
+| **Frontend** (Vitest: regras, validação, formatação, URL da listagem, cliente HTTP, contraste da paleta) | 120 testes | `cd frontend && npm test` |
 | **Ponta a ponta** (Chrome real: autenticação, listagem, CRUD, dashboard, acessibilidade, responsividade) | 177 verificações | `cd e2e && npm ci && bash run.sh` |
 
 - **Backend:** precisa de um PostgreSQL acessível. Por padrão usa `postgres://postgres:postgres@localhost:5432/portal_test`
@@ -238,7 +238,7 @@ Códigos usados: `400` dados inválidos, `401` não autenticado, `403` sem permi
 
 ## Banco de dados
 
-- [`database/schema.sql`](database/schema.sql): criação das tabelas `usuarios` e `solicitacoes`, restrições e índices.
+- [`database/schema.sql`](database/schema.sql): criação das tabelas `usuarios`, `solicitacoes` e `historico_status`, restrições e índices.
 - [`database/seed.sql`](database/seed.sql): 3 usuários, 10 solicitações e o histórico de status delas (dados de demonstração).
 - Tabelas: `usuarios`, `solicitacoes` (com exclusão lógica) e `historico_status`.
 - [`database/dicionario-de-dados.md`](database/dicionario-de-dados.md): dicionário de dados (colunas, tipos, regras e relacionamento).
@@ -276,8 +276,8 @@ Códigos usados: `400` dados inválidos, `401` não autenticado, `403` sem permi
 
 O workflow [`ci.yml`](.github/workflows/ci.yml) roda a cada push na `main` e em pull requests:
 
-1. **Backend:** verificação de tipos, build e 164 testes contra um PostgreSQL de serviço.
-2. **Frontend:** tipos, lint, regra de cores, 84 testes e build.
+1. **Backend:** verificação de tipos, build e 205 testes contra um PostgreSQL de serviço.
+2. **Frontend:** tipos, lint, regra de cores, 120 testes e build.
 3. **Ponta a ponta:** só se os dois anteriores passarem. Sobe o sistema com Docker Compose e executa as 6 suítes no navegador
    (177 verificações); em caso de falha, anexa logs e capturas de tela.
 

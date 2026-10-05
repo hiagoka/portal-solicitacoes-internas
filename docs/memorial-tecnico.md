@@ -53,9 +53,9 @@ e **justificar as escolhas**.
 |---|---|
 | Código de produção (backend + frontend + SQL) | ≈ 3.500 linhas |
 | Código de teste (backend, frontend e E2E) | ≈ 1.900 linhas |
-| Testes automatizados | 164 (API) + 84 (frontend) + 177 verificações em navegador real |
-| Commits | mais de 190, em padrão *Conventional Commits* |
-| Decisões documentadas | 65 |
+| Testes automatizados | 205 (API) + 120 (frontend) + 177 verificações em navegador real |
+| Commits | mais de 230, em padrão *Conventional Commits* |
+| Decisões documentadas | 71 |
 
 ---
 
@@ -76,7 +76,7 @@ e **justificar as escolhas**.
 | Build/dev frontend | Vite | 8.3 | Servidor de desenvolvimento e empacotamento |
 | Estilo | Tailwind CSS | 4.3 | Estilização por utilitários, lendo o tema único |
 | Roteamento | React Router | 8.4 | Navegação, rotas protegidas |
-| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 164 testes de API, 84 de frontend |
+| Testes (unidade e API) | Vitest, Supertest | 4.1 / 7.3 | 205 testes de API, 120 de frontend |
 | Testes (navegador) | `puppeteer-core`, axe-core | 24.43 / 4.13 | 177 verificações, incluindo acessibilidade |
 | Qualidade estática | `tsc` (modo estrito), oxlint | — / 1.81 | Tipos e lint |
 | Containerização | Docker, Docker Compose | — | Empacotamento e orquestração |
@@ -110,7 +110,7 @@ Para cada tecnologia: **motivo** da escolha, **benefícios** para este cenário,
 - **Benefícios:** controle total sobre filtros dinâmicos, junções, paginação e a condição atômica
   `UPDATE … WHERE status = 'aberto'`; nenhuma camada escondendo o que vai ao banco.
 - **Versus alternativas:** Prisma/TypeORM geram migrações e tipos automaticamente (mais produtividade em modelos grandes),
-  mas ocultariam justamente o que se quer demonstrar e adicionariam peso e uma camada de abstração para duas tabelas.
+  mas ocultariam justamente o que se quer demonstrar e adicionariam peso e uma camada de abstração para três tabelas.
 - **Impacto:** exige disciplina: todos os valores vão em parâmetros (`$1`, `$2`…), nunca concatenados (decisão 020). Em um
   sistema com dezenas de tabelas, uma ferramenta de migrações passaria a compensar (seção 6).
 
@@ -386,7 +386,7 @@ hook genérico `useConsulta` foi extraído quando o terceiro hook de busca ia re
 - *Quem pode usar esta rota?* → middleware `exigirPerfil` (por exemplo, só o atendente altera status).
 - *Quem pode agir sobre este registro?* → regra de negócio no *service* (por exemplo, só o autor edita, e só se aberta).
 - O solicitante que pede a solicitação de outra pessoa recebe **404**, e não 403, para não revelar que o código existe (decisão 015).
-- A condição de estado vai **dentro do próprio `UPDATE`/`DELETE`** (`… AND status = 'aberto'`), de modo que a regra seja
+- A condição de estado vai **dentro do próprio `UPDATE`** (`… AND status = 'aberto'`), de modo que a regra seja
   aplicada de forma atômica pelo banco mesmo se o status mudar entre a verificação e a gravação (decisões 016 e 023).
 
 **Defesas complementares:** consultas sempre parametrizadas (sem concatenar entrada do usuário); curingas do `ILIKE` escapados;
@@ -442,9 +442,9 @@ A estrutura completa está no [README](../README.md#estrutura-do-projeto). Princ
 
 | Camada | O que cobre | Quantidade | Onde roda |
 |---|---|---|---|
-| Unitária (frontend) | Regras puras: permissões, validação, formatação, cliente HTTP, **contraste da paleta** | 67 | CI |
-| Integração (backend) | A API de ponta a ponta (HTTP → regra → SQL → PostgreSQL **real**): permissões por perfil, transições, concorrência, filtros, paginação, validação | 134 | CI, com PostgreSQL de serviço |
-| Ponta a ponta (navegador) | Fluxos reais em um Chrome real: autenticação, listagem, CRUD, dashboard, **acessibilidade (axe-core)** e **responsividade** | 160 verificações / 6 suítes | CI, contra o Docker Compose |
+| Unitária (frontend) | Regras puras: permissões, validação, formatação, cliente HTTP, **contraste da paleta** | 120 | CI |
+| Integração (backend) | A API de ponta a ponta (HTTP → regra → SQL → PostgreSQL **real**): permissões por perfil, transições, concorrência, filtros, paginação, validação | 205 | CI, com PostgreSQL de serviço |
+| Ponta a ponta (navegador) | Fluxos reais em um Chrome real: autenticação, listagem, CRUD, dashboard, **acessibilidade (axe-core)** e **responsividade** | 177 verificações / 6 suítes | CI, contra o Docker Compose |
 
 O banco dos testes é separado do de desenvolvimento, criado automaticamente e recriado a cada teste com os **mesmos scripts SQL**
 do sistema, o que valida também o `schema.sql` e o `seed.sql`.
