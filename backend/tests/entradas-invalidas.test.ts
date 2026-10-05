@@ -29,6 +29,33 @@ describe('entradas inválidas nunca causam erro 500', () => {
     });
   });
 
+  describe('o código tem UMA forma canônica (inteiro positivo, sem zeros à esquerda, sinal, expoente nem hexadecimal)', () => {
+    // Antes, `z.coerce.number()` aceitava todas estas formas como o código 1: vários endereços para o mesmo recurso.
+    it.each(['0001', '01', '1e0', '1E0', '+1', '%201', '0x1', '1.0', '١'])('GET /solicitacoes/%s responde 400', async (id) => {
+      const maria = await loginComo('maria');
+      const res = await maria.get(`/solicitacoes/${id}`);
+      expect(res.status).toBe(400);
+      expect(res.body.detalhes[0].campo).toBe('id');
+    });
+
+    it('a forma canônica continua funcionando (e só ela)', async () => {
+      const maria = await loginComo('maria');
+      expect((await maria.get('/solicitacoes/1')).status).toBe(200);
+      expect((await maria.get('/solicitacoes/0')).status).toBe(400); // zero não é um código
+      expect((await maria.get('/solicitacoes/2147483647')).status).toBe(404); // o maior válido: apenas não existe
+    });
+
+    it('vale para todas as rotas com :id (PUT, DELETE, PATCH, histórico)', async () => {
+      const maria = await loginComo('maria');
+      const atendente = await loginComo('atendente');
+      const dados = { titulo: 'Título válido', descricao: 'x', categoria: 'TI' };
+      expect((await maria.put('/solicitacoes/0001').send(dados)).status).toBe(400);
+      expect((await maria.delete('/solicitacoes/1e0')).status).toBe(400);
+      expect((await atendente.patch('/solicitacoes/+1/status').send({ status: 'concluido' })).status).toBe(400);
+      expect((await maria.get('/solicitacoes/0x1/historico')).status).toBe(400);
+    });
+  });
+
   describe('datas que o PostgreSQL não aceita', () => {
     it.each([['de', '0000-01-01'], ['ate', '0000-12-31']])('?%s=%s responde 400 com "Data inválida"', async (campo, valor) => {
       const maria = await loginComo('maria');
