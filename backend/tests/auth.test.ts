@@ -67,7 +67,10 @@ describe('autenticação', () => {
 
     it('recusa token válido de um usuário que foi removido do banco', async () => {
       const agente = await loginComo('joao');
-      await import('../src/config/database').then(({ pool }) => pool.query('DELETE FROM solicitacoes WHERE usuario_id = 3; DELETE FROM usuarios WHERE id = 3'));
+      await import('../src/config/database').then(({ pool }) => pool.query(`
+        DELETE FROM historico_status WHERE usuario_id = 3 OR solicitacao_id IN (SELECT id FROM solicitacoes WHERE usuario_id = 3);
+        DELETE FROM solicitacoes WHERE usuario_id = 3;
+        DELETE FROM usuarios WHERE id = 3`));
 
       const res = await agente.get('/auth/me');
       expect(res.status).toBe(401);

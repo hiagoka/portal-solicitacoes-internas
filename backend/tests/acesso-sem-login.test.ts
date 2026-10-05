@@ -7,6 +7,7 @@ const rotasProtegidas: Array<[metodo: 'get' | 'post' | 'put' | 'patch' | 'delete
   ['get', '/solicitacoes'],
   ['post', '/solicitacoes'],
   ['get', '/solicitacoes/1'],
+  ['get', '/solicitacoes/1/historico'],
   ['put', '/solicitacoes/1'],
   ['delete', '/solicitacoes/1'],
   ['patch', '/solicitacoes/1/status'],
