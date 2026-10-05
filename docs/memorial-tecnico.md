@@ -47,6 +47,11 @@ e **justificar as escolhas**.
 - O "código" da solicitação é o identificador do banco, exibido como `#0001`.
 - O filtro de período considera a **data de abertura**, no dia do fuso de Brasília.
 
+**Uso de ferramentas de IA**
+
+Usei IA como par de programação durante o desenvolvimento. Cada etapa foi revisada por mim antes de entrar no
+repositório, e as decisões, com alternativas e motivos, estão registradas em [`decisoes.md`](decisoes.md).
+
 **Dimensão do que foi entregue**
 
 | Item | Quantidade |
