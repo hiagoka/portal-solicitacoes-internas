@@ -1,0 +1,17 @@
+# Mantém o básico igual em qualquer editor (indentação, quebra de linha, codificação).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.sql]
+indent_size = 4
+
+# No Markdown, dois espaços no fim da linha são uma quebra de linha intencional.
+[*.md]
+trim_trailing_whitespace = false
