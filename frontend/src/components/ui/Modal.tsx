@@ -6,6 +6,11 @@ type ModalProps = {
   onClose: () => void
   title: string
   size?: 'sm' | 'md' | 'lg'
+  /**
+   * Enquanto `true`, o diálogo NÃO pode ser fechado pelo usuário: nem com Esc, nem clicando no fundo, nem no ×. Serve para
+   * operações em andamento (ex.: excluir): fechar "como se fosse cancelar" enquanto o pedido segue seria enganoso.
+   */
+  bloqueado?: boolean
   /** Área de botões no rodapé (ex.: Cancelar / Confirmar). */
   footer?: ReactNode
   children: ReactNode
@@ -21,7 +26,7 @@ const LARGURAS = {
 // e de bloquear o resto da página, comportamentos difíceis de acertar manualmente.
 // Atenção: o <dialog> fica na camada superior do navegador, acima até dos toasts. Feche o modal ANTES de
 // chamar toast.sucesso/erro, senão a notificação aparece escurecida atrás do fundo.
-export function Modal({ open, onClose, title, size = 'md', footer, children }: ModalProps) {
+export function Modal({ open, onClose, title, size = 'md', bloqueado = false, footer, children }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const tituloId = useId()
 
@@ -36,9 +41,20 @@ export function Modal({ open, onClose, title, size = 'md', footer, children }: M
     <dialog
       ref={dialogRef}
       aria-labelledby={tituloId}
-      onClose={onClose} // disparado ao fechar com Esc
+      // Esc: o evento "cancel" é cancelável. O Chrome, porém, ignora o preventDefault se o Esc for pressionado duas vezes
+      // sem outra interação no meio; por isso, se mesmo assim o diálogo fechar, o "close" abaixo o reabre.
+      onCancel={(evento) => {
+        if (bloqueado) evento.preventDefault()
+      }}
+      onClose={() => {
+        if (bloqueado) {
+          dialogRef.current?.showModal()
+          return
+        }
+        onClose()
+      }}
       onClick={(evento) => {
-        if (evento.target === evento.currentTarget) onClose() // clique no fundo escurecido
+        if (!bloqueado && evento.target === evento.currentTarget) onClose() // clique no fundo escurecido
       }}
       className={cn(
         'm-auto w-[calc(100%-2rem)] rounded-lg border border-border bg-surface p-0 text-text shadow-lg',
@@ -53,8 +69,9 @@ export function Modal({ open, onClose, title, size = 'md', footer, children }: M
         <button
           type="button"
           onClick={onClose}
+          disabled={bloqueado}
           aria-label="Fechar"
-          className="-mr-2 rounded-md px-2 text-2xl leading-none text-textMuted hover:text-text focus-visible:outline-2 focus-visible:outline-primary"
+          className="-mr-2 rounded-md px-2 text-2xl leading-none text-textMuted hover:text-text focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
         >
           ×
         </button>

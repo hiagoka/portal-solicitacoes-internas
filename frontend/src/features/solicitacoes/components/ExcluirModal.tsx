@@ -17,6 +17,7 @@ export function ExcluirModal({ open, codigo, titulo, excluindo, onConfirmar, onC
       onClose={onCancelar}
       title="Excluir solicitação?"
       size="sm"
+      bloqueado={excluindo}
       footer={
         <>
           <Button variant="secondary" onClick={onCancelar} disabled={excluindo}>
