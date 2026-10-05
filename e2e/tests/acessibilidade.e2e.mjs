@@ -74,6 +74,15 @@ await auditarNosDoisTemas('página não encontrada')
 await ir('/solicitacoes/4')
 await esperar(() => document.body.innerText.includes('Solicitação não encontrada'))
 await auditarNosDoisTemas('detalhes de solicitação inexistente / de outro usuário')
+
+// ---- tela de erro inesperado (ErrorBoundary): a API devolve um dado fora do contrato e a renderização falha
+t.simulacao.quando = (url) => (url.startsWith('/solicitacoes?') || url === '/solicitacoes'
+  ? { corpo: { solicitacoes: [{ id: 1, titulo: 'x', descricao: 'x', categoria: 'TI', status: 'status-que-nao-existe', criadoEm: '2026-01-01T00:00:00Z', atualizadoEm: '2026-01-01T00:00:00Z', solicitante: { id: 2, nome: 'Maria' } }], paginacao: { pagina: 1, porPagina: 10, total: 1, totalPaginas: 1 } } }
+  : null)
+await ir('/solicitacoes'); await esperar(() => document.querySelector('[role=alert]'))
+await auditarNosDoisTemas('tela de erro inesperado (ErrorBoundary)')
+t.simulacao.quando = () => null
+t.errosDeConsole.length = 0
 await sair()
 
 // ---- atendente

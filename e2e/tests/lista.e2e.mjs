@@ -2,7 +2,7 @@
 import { diasAtras, iniciar, pausa } from '../lib/harness.mjs'
 
 const t = await iniciar('lista', { largura: 1200, altura: 900 })
-const { pagina, checar, texto, temTexto, caminho, esperar, clicar, ir, entrar, sair, campo, preencherData, codigos, linhasDaTabela, rede, digitar } = t
+const { pagina, checar, texto, temTexto, temBotao, caminho, esperar, clicar, ir, entrar, sair, campo, preencherData, codigos, linhasDaTabela, rede, digitar, latencia } = t
 
 async function irParaLista() {
   await ir('/solicitacoes')
@@ -177,5 +177,41 @@ for (const [nome, consultaUrl] of [['data que não existe (31/02)', '?de=2026-02
 await ir('/solicitacoes?busca=nota&status=aberto'); await esperar(() => document.querySelector('tbody tr, [role=status]')); await pausa(500)
 await pagina.evaluate(() => [...document.querySelectorAll('header nav a')].find((a) => a.textContent.trim() === 'Solicitações').click()); await pausa(1200)
 checar('21 menu "Solicitações" limpa TODOS os filtros: URL, campos e lista concordam', consulta() === '' && (await valorDe('Buscar pelo título')) === '' && (await valorDe('Status')) === '' && (await codigos()).length === 10, `URL="${consulta()}" busca="${await valorDe('Buscar pelo título')}" linhas=${(await codigos()).length}`)
+
+// ---------- acessibilidade extra: legenda, nomes dos botões e movimento reduzido ----------
+await ir('/solicitacoes?porPagina=5'); await esperar(() => document.querySelector('tbody tr'))
+checar('22 a tabela tem legenda (<caption>) para leitores de tela', await pagina.evaluate(() => document.querySelector('table caption')?.textContent.trim().length > 0))
+const nomes = await pagina.evaluate(() => [...document.querySelectorAll('nav[aria-label="Paginação"] button')].map((b) => b.getAttribute('aria-label')))
+checar('22 os botões da paginação têm nome completo ("Página anterior" / "Próxima página")', JSON.stringify(nomes) === JSON.stringify(['Página anterior', 'Próxima página']), JSON.stringify(nomes))
+
+// Para ver o spinner é preciso abrir a lista SEM dados anteriores (senão ela só esmaece): navega pelo menu, com a API lenta.
+const animacaoDoSpinner = async () => {
+  await ir('/'); await esperar(() => document.querySelector('p.text-4xl'))
+  await latencia(2500)
+  await pagina.evaluate(() => [...document.querySelectorAll('header nav a')].find((a) => a.textContent.trim() === 'Solicitações').click())
+  await esperar(() => document.querySelector('[role=status] > span[aria-hidden=true]')); await pausa(200)
+  const nome = await pagina.evaluate(() => { const e = document.querySelector('[role=status] > span[aria-hidden=true]'); return e ? getComputedStyle(e).animationName : 'sem spinner' })
+  await latencia(0)
+  return nome
+}
+await pagina.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }])
+const giraNormal = await animacaoDoSpinner()
+checar('22 (controle) com movimento normal, o spinner gira', giraNormal === 'spin', giraNormal)
+await pagina.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
+const giraReduzido = await animacaoDoSpinner()
+checar('22 com "reduzir movimento" ativo, o spinner NÃO gira (usa outra animação, sem rotação)', giraReduzido !== 'spin' && giraReduzido !== 'sem spinner', giraReduzido)
+await pagina.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }])
+
+// ---------- robustez: dado inesperado da API não pode deixar a tela em branco (ErrorBoundary) ----------
+const malformada = { solicitacoes: [{ id: 1, titulo: 'Dado fora do contrato', descricao: 'x', categoria: 'TI', status: 'status-que-nao-existe', criadoEm: '2026-01-01T00:00:00Z', atualizadoEm: '2026-01-01T00:00:00Z', solicitante: { id: 2, nome: 'Maria' } }], paginacao: { pagina: 1, porPagina: 10, total: 1, totalPaginas: 1 } }
+t.simulacao.quando = (url) => (url.startsWith('/solicitacoes?') || url === '/solicitacoes' ? { corpo: malformada } : null)
+await ir('/solicitacoes'); await pausa(1200)
+const aposErro = await pagina.evaluate(() => ({ cabecalho: !!document.querySelector('header'), alerta: document.querySelector('[role=alert]')?.innerText.replace(/\s+/g, ' ') ?? '', raizVazia: document.getElementById('root').children.length === 0 }))
+checar('23 erro de renderização não deixa a tela em branco: o cabeçalho continua e há uma mensagem', aposErro.cabecalho && !aposErro.raizVazia && /Algo deu errado/.test(aposErro.alerta), JSON.stringify(aposErro))
+checar('23 o menu continua utilizável (dá para ir ao Dashboard)', await temBotao('Dashboard'))
+t.simulacao.quando = () => null
+t.errosDeConsole.length = 0                                      // os erros de render acima eram esperados
+await clicar('Tentar novamente'); await pausa(1200)
+checar('23 "Tentar novamente" recupera a lista quando a API volta ao normal', (await codigos()).length === 10, `${(await codigos()).length} linhas`)
 
 await t.finalizar()

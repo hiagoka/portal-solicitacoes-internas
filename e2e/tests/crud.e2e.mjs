@@ -6,6 +6,8 @@ const { pagina, checar, texto, temTexto, caminho, esperar, clicar, temBotao, tem
 // Itens da linha do tempo de status exibida nos detalhes.
 const eventosDoHistorico = () =>
   pagina.evaluate(() => [...document.querySelectorAll('ol[aria-label="Histórico de status"] li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim()))
+const focoEm = () => pagina.evaluate(() => { const a = document.activeElement; return a ? (a.getAttribute('name') ?? a.tagName) : '' })
+const resumoDeErros = () => pagina.evaluate(() => document.querySelector('[data-resumo-de-erros]')?.innerText.replace(/\s+/g, ' ').trim() ?? '')
 const modalAberto = () => pagina.evaluate(() => !!document.querySelector('dialog[open]'))
 const clicarNoModal = (rotulo) =>
   pagina.evaluate((r) => [...document.querySelectorAll('dialog button')].find((b) => b.textContent.trim() === r).click(), rotulo)
@@ -19,12 +21,15 @@ checar('1 "Nova solicitação" abre o formulário', caminho() === '/solicitacoes
 await clicar('Criar solicitação'); await pausa(300)
 let tela = await texto()
 checar('1 envio vazio mostra os 3 erros de campo', tela.includes('ao menos 3 caracteres') && tela.includes('Informe a descrição') && tela.includes('Selecione a categoria'))
+checar('1 envio inválido leva o FOCO ao primeiro campo com erro (Título)', (await focoEm()) === 'titulo', await focoEm())
+checar('1 e um resumo anuncia quantos campos corrigir e lista cada erro', /Corrija 3 campos/.test(await resumoDeErros()) && /Título/.test(await resumoDeErros()) && /Categoria/.test(await resumoDeErros()) && /Descrição/.test(await resumoDeErros()), await resumoDeErros())
 await t.foto('form-erros')
 await digitar(await campo('Título'), 'ab')
 await digitar(await campo('Descrição'), 'Descrição de teste\nsegunda linha')
 await (await campo('Categoria')).select('Financeiro')
 await clicar('Criar solicitação'); await pausa(300)
 checar('1 título curto continua com erro', await temTexto('ao menos 3 caracteres'))
+checar('1 com o título ainda curto, o foco volta a ele', (await focoEm()) === 'titulo', await focoEm())
 await digitar(await campo('Título'), 'c Reembolso E2E')
 await clicar('Criar solicitação')
 await esperar(() => /\/solicitacoes\/\d+$/.test(location.pathname))
