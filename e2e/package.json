@@ -11,8 +11,8 @@
     "test:unit": "node --test lib/"
   },
   "dependencies": {
-    "axe-core": "^4.13.0",
-    "marked": "^18.1.0",
+    "axe-core": "^4.14.0",
+    "marked": "^18.1.1",
     "puppeteer-core": "^24.0.0"
   }
 }
